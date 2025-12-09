@@ -1,0 +1,164 @@
+{
+  "Tomato___Early_blight": {
+    "general": "Early blight is caused by Alternaria solani. Remove infected leaves immediately. Apply fungicides containing chlorothalonil or mancozeb every 7-10 days. Ensure proper spacing between plants for good air circulation.",
+    "prevention": "Use disease-resistant varieties. Rotate crops annually. Water at the base of plants, avoid overhead watering. Mulch around plants to prevent soil splash. Remove plant debris at end of season.",
+    "organic": "Apply copper-based fungicides. Use neem oil spray. Apply compost tea to boost plant immunity. Practice crop rotation."
+  },
+  "Tomato___Late_blight": {
+    "general": "Late blight is caused by Phytophthora infestans. Remove and destroy infected plants immediately. Apply fungicides containing chlorothalonil, mancozeb, or copper-based products. Treat every 5-7 days during wet weather.",
+    "prevention": "Plant resistant varieties. Ensure good drainage. Space plants properly. Avoid working in wet fields. Remove all plant debris after harvest.",
+    "organic": "Use copper-based fungicides. Apply baking soda solution (1 tsp per quart of water). Remove infected plants immediately."
+  },
+  "Tomato___Leaf_Mold": {
+    "general": "Leaf mold is caused by Passalora fulva. Improve air circulation. Apply fungicides containing chlorothalonil or maneb. Remove lower leaves to improve airflow.",
+    "prevention": "Use resistant varieties. Space plants properly. Water at base, not overhead. Maintain humidity below 85%. Use fans in greenhouses.",
+    "organic": "Apply copper-based fungicides. Use neem oil. Improve ventilation."
+  },
+  "Tomato___Septoria_leaf_spot": {
+    "general": "Septoria leaf spot is caused by Septoria lycopersici. Remove infected leaves. Apply fungicides containing chlorothalonil or mancozeb every 7-10 days.",
+    "prevention": "Rotate crops. Avoid overhead watering. Space plants properly. Remove plant debris. Use mulch to prevent soil splash.",
+    "organic": "Apply copper-based fungicides. Use neem oil. Remove infected leaves promptly."
+  },
+  "Tomato___Spider_mites_Two_spotted_spider_mite": {
+    "general": "Spider mites are tiny pests that suck plant sap. Apply miticides or insecticidal soap. Increase humidity. Remove heavily infested leaves.",
+    "prevention": "Keep plants well-watered. Increase humidity. Remove weeds. Introduce beneficial insects like ladybugs. Monitor regularly.",
+    "organic": "Spray with neem oil or insecticidal soap. Use predatory mites. Apply diatomaceous earth. Increase humidity."
+  },
+  "Tomato___Target_Spot": {
+    "general": "Target spot is caused by Corynespora cassiicola. Remove infected leaves. Apply fungicides containing chlorothalonil or azoxystrobin.",
+    "prevention": "Use resistant varieties. Ensure good air circulation. Avoid overhead watering. Remove plant debris.",
+    "organic": "Apply copper-based fungicides. Use neem oil. Improve ventilation."
+  },
+  "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+    "general": "This is a viral disease spread by whiteflies. Remove and destroy infected plants. Control whitefly populations with insecticides.",
+    "prevention": "Use resistant varieties. Control whiteflies with yellow sticky traps. Use row covers. Remove weeds that host whiteflies.",
+    "organic": "Use neem oil to control whiteflies. Introduce beneficial insects. Remove infected plants immediately."
+  },
+  "Tomato___Bacterial_spot": {
+    "general": "Bacterial spot is caused by Xanthomonas species. Remove infected leaves. Apply copper-based bactericides. Avoid working in wet fields.",
+    "prevention": "Use disease-free seeds. Rotate crops. Avoid overhead watering. Space plants properly. Remove plant debris.",
+    "organic": "Apply copper-based products. Use compost tea. Remove infected plant parts."
+  },
+  "Tomato___Healthy": {
+    "general": "Your plant appears healthy! Continue good practices.",
+    "prevention": "Maintain proper spacing, watering, and nutrition. Monitor regularly for pests and diseases.",
+    "organic": "Continue organic practices: compost, proper spacing, and regular monitoring."
+  },
+  "Pepper___bell___Bacterial_spot": {
+    "general": "Bacterial spot on peppers is caused by Xanthomonas species. Remove infected leaves. Apply copper-based bactericides.",
+    "prevention": "Use disease-free seeds. Rotate crops. Avoid overhead watering. Space plants properly.",
+    "organic": "Apply copper-based products. Remove infected parts promptly."
+  },
+  "Pepper___bell___Healthy": {
+    "general": "Your pepper plant appears healthy! Continue good practices.",
+    "prevention": "Maintain proper spacing, watering, and nutrition.",
+    "organic": "Continue organic practices."
+  },
+  "Potato___Early_blight": {
+    "general": "Early blight on potatoes is similar to tomatoes. Remove infected leaves. Apply fungicides containing chlorothalonil.",
+    "prevention": "Use certified seed potatoes. Rotate crops. Ensure good drainage. Remove plant debris.",
+    "organic": "Apply copper-based fungicides. Use compost tea. Practice crop rotation."
+  },
+  "Potato___Late_blight": {
+    "general": "Late blight on potatoes is devastating. Remove and destroy infected plants immediately. Apply fungicides preventatively.",
+    "prevention": "Use certified disease-free seed. Plant resistant varieties. Ensure good drainage. Monitor regularly.",
+    "organic": "Apply copper-based fungicides. Remove infected plants immediately. Practice crop rotation."
+  },
+  "Potato___Healthy": {
+    "general": "Your potato plant appears healthy! Continue good practices.",
+    "prevention": "Maintain proper spacing and nutrition.",
+    "organic": "Continue organic practices."
+  },
+  "Corn___maize___Northern_Leaf_Blight": {
+    "general": "Northern leaf blight is caused by Exserohilum turcicum. Apply fungicides containing azoxystrobin or propiconazole.",
+    "prevention": "Use resistant varieties. Rotate crops. Remove crop residue. Ensure proper spacing.",
+    "organic": "Apply copper-based fungicides. Practice crop rotation. Remove infected leaves."
+  },
+  "Corn___maize___Common_rust_": {
+    "general": "Common rust is caused by Puccinia sorghi. Apply fungicides containing propiconazole or tebuconazole.",
+    "prevention": "Use resistant varieties. Plant early. Ensure proper spacing. Remove crop residue.",
+    "organic": "Apply sulfur-based fungicides. Use resistant varieties."
+  },
+  "Corn___maize___Healthy": {
+    "general": "Your corn plant appears healthy! Continue good practices.",
+    "prevention": "Maintain proper spacing and nutrition.",
+    "organic": "Continue organic practices."
+  },
+  "Apple___Apple_scab": {
+    "general": "Apple scab is caused by Venturia inaequalis. Apply fungicides containing captan, mancozeb, or myclobutanil.",
+    "prevention": "Use resistant varieties. Prune for good air circulation. Remove fallen leaves. Apply preventive fungicides in spring.",
+    "organic": "Apply sulfur or lime-sulfur. Use resistant varieties. Remove infected leaves and fruit."
+  },
+  "Apple___Black_rot": {
+    "general": "Black rot is caused by Botryosphaeria obtusa. Prune infected branches. Apply fungicides containing captan or thiophanate-methyl.",
+    "prevention": "Prune properly. Remove mummified fruit. Ensure good air circulation. Apply preventive sprays.",
+    "organic": "Apply copper-based fungicides. Prune infected parts. Remove debris."
+  },
+  "Apple___Cedar_apple_rust": {
+    "general": "Cedar apple rust is caused by Gymnosporangium juniperi-virginianae. Apply fungicides containing myclobutanil or propiconazole.",
+    "prevention": "Remove nearby juniper trees if possible. Use resistant varieties. Apply preventive fungicides.",
+    "organic": "Apply sulfur-based fungicides. Remove alternate hosts if possible."
+  },
+  "Apple___Healthy": {
+    "general": "Your apple tree appears healthy! Continue good practices.",
+    "prevention": "Maintain proper pruning and nutrition.",
+    "organic": "Continue organic practices."
+  },
+  "Cherry___including_sour___Powdery_mildew": {
+    "general": "Powdery mildew is caused by Podosphaera species. Apply fungicides containing myclobutanil or propiconazole.",
+    "prevention": "Prune for good air circulation. Use resistant varieties. Avoid overhead watering.",
+    "organic": "Apply sulfur-based fungicides. Use neem oil. Improve air circulation."
+  },
+  "Cherry___including_sour___Healthy": {
+    "general": "Your cherry tree appears healthy! Continue good practices.",
+    "prevention": "Maintain proper pruning and nutrition.",
+    "organic": "Continue organic practices."
+  },
+  "Grape___Black_rot": {
+    "general": "Black rot on grapes is caused by Guignardia bidwellii. Apply fungicides containing captan or mancozeb.",
+    "prevention": "Prune for good air circulation. Remove mummified fruit. Apply preventive fungicides.",
+    "organic": "Apply copper-based fungicides. Remove infected parts."
+  },
+  "Grape___Esca_Black_Measles": {
+    "general": "Esca is a complex disease. Prune infected canes. Apply fungicides containing thiophanate-methyl.",
+    "prevention": "Use clean pruning tools. Avoid wounding vines. Ensure good drainage.",
+    "organic": "Apply copper-based fungicides. Prune properly."
+  },
+  "Grape___Leaf_blight_Isariopsis_Leaf_Spot": {
+    "general": "Leaf blight is caused by Pseudocercospora vitis. Apply fungicides containing captan or mancozeb.",
+    "prevention": "Prune for good air circulation. Remove infected leaves. Apply preventive sprays.",
+    "organic": "Apply copper-based fungicides. Improve air circulation."
+  },
+  "Grape___Healthy": {
+    "general": "Your grape vine appears healthy! Continue good practices.",
+    "prevention": "Maintain proper pruning and nutrition.",
+    "organic": "Continue organic practices."
+  },
+  "Peach___Bacterial_spot": {
+    "general": "Bacterial spot on peaches is caused by Xanthomonas pruni. Apply copper-based bactericides.",
+    "prevention": "Use resistant varieties. Prune for good air circulation. Avoid overhead watering.",
+    "organic": "Apply copper-based products. Remove infected parts."
+  },
+  "Peach___Healthy": {
+    "general": "Your peach tree appears healthy! Continue good practices.",
+    "prevention": "Maintain proper pruning and nutrition.",
+    "organic": "Continue organic practices."
+  },
+  "Strawberry___Leaf_scorch": {
+    "general": "Leaf scorch is caused by Diplocarpon earliana. Apply fungicides containing captan or thiophanate-methyl.",
+    "prevention": "Use resistant varieties. Remove infected leaves. Ensure good air circulation.",
+    "organic": "Apply copper-based fungicides. Remove infected parts."
+  },
+  "Strawberry___Healthy": {
+    "general": "Your strawberry plant appears healthy! Continue good practices.",
+    "prevention": "Maintain proper spacing and nutrition.",
+    "organic": "Continue organic practices."
+  },
+  "default": {
+    "general": "Consult with local agricultural extension services or experts for specific treatment recommendations based on your region and crop type.",
+    "prevention": "Practice good crop hygiene, proper spacing, crop rotation, and regular monitoring. Use disease-resistant varieties when available.",
+    "organic": "Use organic-approved fungicides, improve soil health with compost, practice crop rotation, and encourage beneficial insects."
+  }
+}
+
+

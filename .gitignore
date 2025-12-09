@@ -1,0 +1,23 @@
+venv/ 
+env/ 
+__pycache__/ 
+*.pyc 
+db.sqlite3 
+.env 
+media/ 
+staticfiles/ 
+ECHO is on.
+**/migrations/** 
+!**/migrations/__init__.py 
+ECHO is on.
+node_modules/ 
+build/ 
+dist/ 
+npm-debug.log 
+yarn-error.log 
+ECHO is on.
+.DS_Store 
+Thumbs.db 
+ECHO is on.
+.vscode/ 
+.idea/ 
