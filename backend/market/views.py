@@ -164,3 +164,6 @@ def predict_price(request, crop):
 
 
 
+
+
+

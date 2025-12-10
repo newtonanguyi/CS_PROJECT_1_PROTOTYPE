@@ -170,3 +170,6 @@ def generate_agricultural_advice(temperature, humidity, rain_prediction, wind_sp
 
 
 
+
+
+
