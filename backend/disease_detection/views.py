@@ -117,6 +117,41 @@ def _validate_image_dimensions(file_path):
     return None, None
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def disease_model_status(request):
+    """
+    Lightweight status endpoint to prove the system can receive real samples
+    and is configured with the expected model assets.
+    """
+    model_path = settings.MODELS_DIR / 'disease_detector.onnx'
+    label_map_path = settings.MODELS_DIR / 'label_map.json'
+    treatments_path = settings.MODELS_DIR / 'disease_treatments.json'
+
+    return Response(
+        {
+            'supported_crops': [
+                {'key': 'tomato', 'label': 'Tomato'},
+                {'key': 'potato', 'label': 'Potato'},
+                {'key': 'pepper', 'label': 'Pepper Bell'},
+            ],
+            'accepts_uploads': True,
+            'upload_constraints': {
+                'allowed_content_types': sorted(list(ALLOWED_IMAGE_TYPES)),
+                'max_size_bytes': MAX_IMAGE_SIZE_BYTES,
+                'min_width_px': MIN_IMAGE_WIDTH,
+                'min_height_px': MIN_IMAGE_HEIGHT,
+            },
+            'model_assets': {
+                'onnx_model_present': model_path.exists(),
+                'label_map_present': label_map_path.exists(),
+                'treatments_present': treatments_path.exists(),
+            },
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def detect_disease(request):

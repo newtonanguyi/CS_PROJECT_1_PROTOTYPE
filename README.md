@@ -2,7 +2,7 @@
 
 A comprehensive full-stack AI-powered agricultural advisory system with disease detection, weather intelligence, market prices, and AI chat advisory.
 
-## 🌟 Features
+## 🌟 Features (Implemented Scope)
 
 - **AI Disease Detection**: Upload plant images to detect diseases using a trained MobileNetV2 model
 - **Weather Intelligence**: Real-time weather forecasts with agricultural advice
@@ -10,6 +10,13 @@ A comprehensive full-stack AI-powered agricultural advisory system with disease 
 - **AI Chat Advisory**: Interactive chat with RAG-powered agricultural advice
 - **Seasonal Guide**: Month-by-month planting and management recommendations
 - **Beautiful Dashboard**: Modern, responsive UI with green/white theme
+
+### Practical scope note (for evaluation)
+This is an integrated decision-support prototype, but the **deepest implemented scope** is the **leaf-image disease detection pipeline for three crop families**: **Tomato, Potato, and Pepper Bell**. The API uses upload validation, crop-selection gating, and unknown/cautious handling to reduce misleading diagnoses on unsupported crops or low-quality photos.
+
+Other modules (weather, market, RAG chat, seasonal guide) are implemented and integrated end-to-end, but their real-world accuracy depends on external data availability and knowledge coverage:
+- **Weather**: uses OpenWeatherMap when configured; otherwise falls back to Open-Meteo, and finally to sample data only if providers are unavailable.
+- **Market**: uses deterministic, configurable baseline data from `backend/market/data/price_config.json` plus a baseline linear-regression forecast (not a live market feed).
 
 ## 🏗️ Project Structure
 

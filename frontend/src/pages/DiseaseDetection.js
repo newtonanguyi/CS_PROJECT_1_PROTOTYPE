@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { diseaseAPI } from '../services/api';
 import { Upload, ScanLine, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 
@@ -9,6 +9,11 @@ const DiseaseDetection = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedCrop, setSelectedCrop] = useState('');
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState('');
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
 
   const formatClassName = (name) => {
     if (!name) return 'Unknown or unsupported leaf';
@@ -23,26 +28,105 @@ const DiseaseDetection = () => {
   const MAX_FILE_SIZE_MB = 10;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
+  const stopCamera = () => {
+    const stream = streamRef.current;
+    if (stream) {
+      stream.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const openCamera = async () => {
+    setCameraError('');
+    setError('');
+    setResult(null);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError('Camera is not supported in this browser. Please use file upload instead.');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+      setCameraOpen(true);
+
+      // Ensure the video element exists before attaching stream.
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 0);
+    } catch (e) {
+      const name = e?.name || '';
+      if (name === 'NotAllowedError' || name === 'SecurityError') {
+        setCameraError('Camera permission denied. Please allow camera access and try again.');
+      } else if (name === 'NotFoundError') {
+        setCameraError('No camera device found. Please use file upload instead.');
+      } else {
+        setCameraError('Failed to access camera. Please try again or use file upload.');
+      }
+    }
+  };
+
+  const closeCamera = () => {
+    stopCamera();
+    setCameraOpen(false);
+  };
+
+  const setSelectedImageFile = (selectedFile) => {
+    if (!selectedFile) return;
+    if (!selectedFile.type?.startsWith('image/')) {
+      setError('Please select an image file (JPEG, PNG, or WebP).');
+      setFile(null);
+      setPreview(null);
+      return;
+    }
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      setError(`Image must be smaller than ${MAX_FILE_SIZE_MB} MB.`);
+      setFile(null);
+      setPreview(null);
+      return;
+    }
+    setFile(selectedFile);
+    setPreview(URL.createObjectURL(selectedFile));
+    setResult(null);
+    setError('');
+  };
+
+  const capturePhoto = async () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    const w = video.videoWidth || 1280;
+    const h = video.videoHeight || 720;
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, w, h);
+
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+    if (!blob) {
+      setCameraError('Could not capture photo. Please try again.');
+      return;
+    }
+    const captured = new File([blob], `leaf_capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+    setSelectedImageFile(captured);
+    closeCamera();
+  };
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      if (!selectedFile.type.startsWith('image/')) {
-        setError('Please select an image file (JPEG, PNG, or WebP).');
-        setFile(null);
-        setPreview(null);
-        return;
-      }
-      if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-        setError(`Image must be smaller than ${MAX_FILE_SIZE_MB} MB.`);
-        setFile(null);
-        setPreview(null);
-        return;
-      }
-      setFile(selectedFile);
-      setPreview(URL.createObjectURL(selectedFile));
-      setResult(null);
-      setError('');
-    }
+    setSelectedImageFile(selectedFile);
   };
 
   const handleDetect = async () => {
@@ -95,10 +179,18 @@ const DiseaseDetection = () => {
     setPreview(null);
     setResult(null);
     setError('');
+    setCameraError('');
     if (preview) {
       URL.revokeObjectURL(preview);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -132,21 +224,40 @@ const DiseaseDetection = () => {
           </div>
           
           {!preview ? (
-            <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <Upload className="w-12 h-12 text-gray-400 mb-4" />
-                <p className="mb-2 text-sm text-gray-500">
-                  <span className="font-semibold">Click to upload</span> or drag and drop
-                </p>
-                <p className="text-xs text-gray-500">PNG, JPG, JPEG or WebP (max 10MB). Use a clear leaf photo.</p>
-              </div>
-              <input
-                type="file"
-                className="hidden"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={handleFileChange}
-              />
-            </label>
+            <div className="space-y-3">
+              <label className="flex flex-col items-center justify-center w-full h-56 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <Upload className="w-12 h-12 text-gray-400 mb-4" />
+                  <p className="mb-2 text-sm text-gray-500">
+                    <span className="font-semibold">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    PNG, JPG, JPEG or WebP (max 10MB). Use a clear leaf photo (close-up, good light, leaf fills most of the frame).
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  capture="environment"
+                  onChange={handleFileChange}
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={openCamera}
+                className="w-full border border-gray-300 bg-white text-gray-900 py-3 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+              >
+                Use Camera
+              </button>
+
+              {cameraError && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-sm">
+                  {cameraError}
+                </div>
+              )}
+            </div>
           ) : (
             <div className="relative">
               <img
@@ -160,6 +271,64 @@ const DiseaseDetection = () => {
               >
                 <span className="text-gray-600">×</span>
               </button>
+            </div>
+          )}
+
+          {cameraOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+              <div className="w-full max-w-xl bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                  <div>
+                    <p className="font-semibold text-gray-900">Camera</p>
+                    <p className="text-xs text-gray-600">Take a clear close-up of the leaf.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeCamera}
+                    className="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <div className="p-4 space-y-3">
+                  <div className="bg-black rounded-lg overflow-hidden">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      className="w-full h-80 object-contain"
+                      onLoadedMetadata={() => {
+                        if (videoRef.current) videoRef.current.play?.();
+                      }}
+                    />
+                  </div>
+                  <canvas ref={canvasRef} className="hidden" />
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={capturePhoto}
+                      className="bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                    >
+                      Capture Photo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeCamera}
+                      className="border border-gray-300 bg-white text-gray-900 py-3 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+
+                  {cameraError && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-sm">
+                      {cameraError}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
