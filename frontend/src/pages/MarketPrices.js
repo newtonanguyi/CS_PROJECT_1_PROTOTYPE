@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { marketAPI } from '../services/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, Minus, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 const MarketPrices = () => {
   const [prices, setPrices] = useState(null);
@@ -11,6 +11,11 @@ const MarketPrices = () => {
   const [loading, setLoading] = useState(false);
 
   const crops = ['Tomato', 'Maize', 'Potato', 'Onion', 'Rice', 'Wheat'];
+
+  const formatUGX = (value) => {
+    if (value == null || isNaN(value)) return '-';
+    return `UGx ${Number(value).toLocaleString('en-UG')}`;
+  };
 
   useEffect(() => {
     fetchPrices();
@@ -113,8 +118,10 @@ const MarketPrices = () => {
                     {getTrendIcon(data.trend)}
                   </div>
                   <div className="flex items-baseline space-x-2">
-                    <DollarSign className="text-gray-400" size={20} />
-                    <span className="text-2xl font-bold text-gray-900">{data.current_price}</span>
+                    <span className="text-sm font-medium text-gray-500">UGx</span>
+                    <span className="text-2xl font-bold text-gray-900">
+                      {Number(data.current_price).toLocaleString('en-UG')}
+                    </span>
                     <span className="text-sm text-gray-500">/{data.unit}</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1 capitalize">Trend: {data.trend}</p>
@@ -150,7 +157,7 @@ const MarketPrices = () => {
                 <div>
                   <p className="text-sm text-gray-600">Current Price</p>
                   <p className="text-xl font-bold text-gray-900">
-                    ${history.current_price?.toFixed(2)}
+                    {formatUGX(history.current_price)}
                   </p>
                 </div>
               </div>
@@ -167,13 +174,13 @@ const MarketPrices = () => {
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-gray-600 mb-1">Current Price</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    ${prediction.current_price?.toFixed(2)}
+                    {formatUGX(prediction.current_price)}
                   </p>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg">
                   <p className="text-sm text-gray-600 mb-1">Average Predicted</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    ${prediction.average_predicted?.toFixed(2)}
+                    {formatUGX(prediction.average_predicted)}
                   </p>
                   <div className="flex items-center space-x-2 mt-2">
                     {getTrendIcon(prediction.trend)}
@@ -193,7 +200,7 @@ const MarketPrices = () => {
                         })}
                       </p>
                       <p className="text-sm font-semibold text-gray-900">
-                        ${pred.predicted_price?.toFixed(2)}
+                        {formatUGX(pred.predicted_price)}
                       </p>
                     </div>
                   ))}
@@ -211,6 +218,8 @@ const MarketPrices = () => {
 };
 
 export default MarketPrices;
+
+
 
 
 

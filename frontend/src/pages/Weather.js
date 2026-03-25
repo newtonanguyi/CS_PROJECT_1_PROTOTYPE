@@ -54,7 +54,7 @@ const Weather = () => {
             type="text"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder="Enter location (e.g., Nairobi, Kenya)"
+            placeholder="Enter location (e.g., Kampala, Uganda)"
             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
           />
           <button
@@ -101,7 +101,9 @@ const Weather = () => {
               </div>
               <div>
                 <p className="text-blue-200 text-sm mb-1">Wind Speed</p>
-                <p className="text-3xl font-bold">{weather.wind_speed || 'N/A'} m/s</p>
+                <p className="text-3xl font-bold">
+                  {weather.wind_speed ?? 'N/A'} {weather.wind_speed_unit || 'km/h'}
+                </p>
               </div>
               <div>
                 <p className="text-blue-200 text-sm mb-1">Rain Prediction</p>
@@ -118,6 +120,12 @@ const Weather = () => {
                 <span>Agricultural Advice</span>
               </h3>
               <p className="text-gray-700">{weather.advice}</p>
+            </div>
+          )}
+
+          {weather.note && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-800 text-sm">
+              {weather.note}
             </div>
           )}
 
@@ -164,6 +172,8 @@ const Weather = () => {
 };
 
 export default Weather;
+
+
 
 
 

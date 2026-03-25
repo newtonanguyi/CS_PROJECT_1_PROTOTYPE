@@ -119,36 +119,48 @@ def get_seasonal_guide(request):
 
 
 def get_seasonal_recommendations(month, location=''):
-    """Get seasonal recommendations based on month."""
-    
-    # Northern hemisphere seasons (adjust for southern if needed)
-    if month in [12, 1, 2]:  # Winter
+    """Get seasonal recommendations based on month.
+
+    Adapted for Uganda's bimodal rainfall pattern (rainy and dry seasons)
+    rather than temperate seasons like Winter/Spring/Summer/Fall.
+    """
+
+    # Uganda approximate seasons:
+    # - March–May: First rainy season
+    # - June–August: Mid-year dry season
+    # - September–November: Second rainy season
+    # - December–February: End-year dry season
+    if month in [3, 4, 5]:
+        # First rainy season (planting peak)
         return {
-            'season': 'Winter',
-            'recommendation': 'Focus on planning, soil preparation, and greenhouse crops. Protect sensitive plants from frost.',
-            'suitable_crops': ['Lettuce', 'Spinach', 'Carrots', 'Cabbage', 'Broccoli'],
-            'activities': ['Soil testing', 'Planning next season', 'Greenhouse maintenance', 'Tool maintenance']
+            'season': 'First Rainy Season',
+            'recommendation': 'Good time for planting most crops. Take advantage of reliable rains for land preparation, planting, and early fertilizer application.',
+            'suitable_crops': ['Maize', 'Beans', 'Groundnuts', 'Soybeans', 'Rice', 'Vegetables'],
+            'activities': ['Land preparation and ploughing', 'Planting main season crops', 'Early weeding', 'Basal fertilizer or manure application']
         }
-    elif month in [3, 4, 5]:  # Spring
+    elif month in [9, 10, 11]:
+        # Second rainy season
         return {
-            'season': 'Spring',
-            'recommendation': 'Ideal time for planting most crops. Prepare soil, start seedlings, and begin main planting season.',
-            'suitable_crops': ['Tomatoes', 'Peppers', 'Corn', 'Beans', 'Squash', 'Cucumbers'],
-            'activities': ['Soil preparation', 'Planting', 'Fertilization', 'Irrigation setup']
+            'season': 'Second Rainy Season',
+            'recommendation': 'Favourable for short-maturing crops and vegetables. Maintain field hygiene and manage pests and diseases encouraged by humidity.',
+            'suitable_crops': ['Beans', 'Vegetables', 'Irish potatoes', 'Sweet potatoes', 'Millet'],
+            'activities': ['Planting short-season crops', 'Weeding and gap filling', 'Pest and disease monitoring', 'Top dressing and supplementary fertilization']
         }
-    elif month in [6, 7, 8]:  # Summer
+    elif month in [6, 7, 8]:
+        # Mid-year dry season
         return {
-            'season': 'Summer',
-            'recommendation': 'Maintain irrigation, monitor for pests and diseases, and harvest early crops. Provide shade for sensitive plants.',
-            'suitable_crops': ['Tomatoes', 'Peppers', 'Corn', 'Okra', 'Eggplant'],
-            'activities': ['Regular watering', 'Pest monitoring', 'Disease control', 'Harvesting']
+            'season': 'Mid-Year Dry Season',
+            'recommendation': 'Focus on harvesting, post-harvest handling, and water conservation. Plan for the next rains and protect soils from erosion.',
+            'suitable_crops': ['Drought-tolerant crops', 'Perennial crops', 'Irrigated vegetables'],
+            'activities': ['Harvesting and proper drying of grains', 'Storage and pest control', 'Mulching and soil conservation', 'Repairing terraces and drainage channels']
         }
-    else:  # Fall (9, 10, 11)
+    else:
+        # End-year dry season (Dec–Feb)
         return {
-            'season': 'Fall',
-            'recommendation': 'Harvest season. Plant cool-season crops. Prepare for winter. Collect seeds for next year.',
-            'suitable_crops': ['Lettuce', 'Spinach', 'Radishes', 'Carrots', 'Beets'],
-            'activities': ['Harvesting', 'Planting cool-season crops', 'Soil preparation', 'Composting']
+            'season': 'End-Year Dry Season',
+            'recommendation': 'Ideal period for planning, field maintenance, and irrigation where possible. Prepare land for the first rainy season.',
+            'suitable_crops': ['Perennial crops', 'Irrigated vegetables', 'Fruit trees'],
+            'activities': ['Soil testing and planning', 'Clearing fields and removing crop residues', 'Establishing water harvesting structures', 'Tree planting and orchard maintenance']
         }
 
 
@@ -370,6 +382,8 @@ def chat_advisory(request):
         'response': response_text,
         'timestamp': datetime.now().isoformat()
     }, status=status.HTTP_200_OK)
+
+
 
 
 

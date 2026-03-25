@@ -37,12 +37,21 @@ def get_data_loaders(dataset_dir, batch_size=32, num_workers=0):
     if platform.system() == 'Windows':
         num_workers = 0
     
+    # Stronger augmentations improve real-world generalization (reduce overfitting).
     train_transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.RandomResizedCrop(224, scale=(0.8, 1.0), ratio=(0.9, 1.1)),
         transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(degrees=15),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2),
+        transforms.RandomRotation(degrees=20),
+        transforms.RandomAffine(
+            degrees=0,
+            translate=(0.1, 0.1),
+            scale=(0.9, 1.1),
+            shear=10,
+        ),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05),
+        transforms.GaussianBlur(kernel_size=(5, 9), sigma=(0.1, 5.)),  # simulates out-of-focus phone cameras
         transforms.ToTensor(),
+        transforms.RandomErasing(p=0.25, scale=(0.02, 0.2), ratio=(0.3, 3.3), value='random'),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
     
@@ -65,9 +74,16 @@ def get_data_loaders(dataset_dir, batch_size=32, num_workers=0):
     return train_loader, val_loader, test_loader, len(get_class_folders(dataset_dir))
 
 
-def create_model(num_classes):
+def create_model(num_classes, freeze_base=True):
     """Create MobileNetV2 model."""
     model = models.mobilenet_v2(pretrained=True)
+    
+    # Freeze the base layers to prevent overfitting to laboratory backgrounds
+    if freeze_base:
+        for param in model.parameters():
+            param.requires_grad = False
+            
+    # The classifier layer is strictly what gets trained
     model.classifier[1] = nn.Linear(model.last_channel, num_classes)
     return model
 
@@ -93,13 +109,14 @@ def train_model(dataset_dir, model_dir, epochs=10, batch_size=64, learning_rate=
     print(f"Training samples: {len(train_loader.dataset)}, Validation: {len(val_loader.dataset)}, Test: {len(test_loader.dataset)}")
     print(f"Number of classes: {num_classes}")
     
-    # Create model
-    model = create_model(num_classes)
+    # Create model with frozen base layers
+    model = create_model(num_classes, freeze_base=True)
     model = model.to(device)
     
     # Loss and optimizer
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    # Label smoothing + weight decay improve robustness to out-of-domain noise.
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
     
     start_epoch = 0

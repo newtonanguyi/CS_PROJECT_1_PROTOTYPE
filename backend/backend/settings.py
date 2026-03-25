@@ -138,6 +138,10 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Allow disease detection image uploads up to 10 MB (validation in disease_detection.views)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+
 # Project paths
 PROJECT_ROOT = BASE_DIR.parent
 DATASET_DIR = PROJECT_ROOT / 'dataset' / 'plant_village'

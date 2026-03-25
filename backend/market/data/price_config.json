@@ -1,0 +1,44 @@
+{
+  "source": "Based on FAO/FEWS NET and regional market data (Uganda/East Africa). Prices in UGX per kg.",
+  "currency": "UGX",
+  "unit": "per kg",
+  "last_updated_reference": "2024",
+  "crops": {
+    "Tomato": {
+      "base_price": 4200,
+      "volatility": 0.04,
+      "trend_pct_per_month": 0.5,
+      "seed": 1
+    },
+    "Maize": {
+      "base_price": 2400,
+      "volatility": 0.03,
+      "trend_pct_per_month": -0.3,
+      "seed": 2
+    },
+    "Potato": {
+      "base_price": 3200,
+      "volatility": 0.035,
+      "trend_pct_per_month": 0.2,
+      "seed": 3
+    },
+    "Onion": {
+      "base_price": 4500,
+      "volatility": 0.038,
+      "trend_pct_per_month": 0.4,
+      "seed": 4
+    },
+    "Rice": {
+      "base_price": 5200,
+      "volatility": 0.025,
+      "trend_pct_per_month": 0.1,
+      "seed": 5
+    },
+    "Wheat": {
+      "base_price": 3100,
+      "volatility": 0.03,
+      "trend_pct_per_month": 0.2,
+      "seed": 6
+    }
+  }
+}

@@ -1,0 +1,112 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1.8cm]{geometry}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{parskip}
+\setlength{\parskip}{0.35em}
+
+\title{\textbf{AI-Powered Smart Agriculture Advisory System for Smallholder Farmers in Uganda}\\
+\large Project Planning and Execution Readiness (February Deliverables)}
+\author{Project Team}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Three Core Deliverables}
+The project is organized into three core deliverables that build toward the final output:
+\begin{enumerate}[noitemsep]
+  \item \textbf{11th February:} Improved functional prototype and trained disease model baseline.
+  \item \textbf{28th February:} Integrated advisory system with analytics and preliminary results.
+  \item \textbf{Final stage:} Consolidated system with validation evidence for wider deployment.
+\end{enumerate}
+
+This report focuses on the first two deliverables as requested.
+
+\section*{Deliverable 1 (11th February)}
+\textbf{Brief description:} An improved prototype where core user flows (disease detection, weather, and basic advisory) are functional end-to-end.
+
+\textbf{1) Objective and research alignment}
+\begin{itemize}[noitemsep]
+  \item Directly addresses disease diagnosis from uploaded images.
+  \item Addresses weather-informed recommendations for farmer decisions.
+\end{itemize}
+
+\textbf{2) Key components/features}
+\begin{itemize}[noitemsep]
+  \item Disease module: image upload, preprocessing, ONNX inference, treatment mapping.
+  \item Weather module: real weather integration and advisory generation.
+  \item Frontend pages and authentication workflow for usable access.
+\end{itemize}
+
+\textbf{3) Technical work involved}
+\begin{itemize}[noitemsep]
+  \item Prepare image dataset and class mapping (\texttt{label\_map.json}).
+  \item Split data (train/validation/test), train model, export ONNX.
+  \item Integrate backend APIs with frontend and run end-to-end checks.
+\end{itemize}
+
+\textbf{4) Scope and limitations}
+\begin{itemize}[noitemsep]
+  \item Scope: stable functionality for supported model classes/crops.
+  \item Limitation: model depends on available training classes and image quality.
+\end{itemize}
+
+\textbf{5) TRL:} \textbf{TRL 5} (validated in a relevant development environment).
+
+\section*{Deliverable 2 (28th February)}
+\textbf{Brief description:} A more complete integrated system with analytical modules and preliminary performance evidence.
+
+\textbf{1) Objective and research alignment}
+\begin{itemize}[noitemsep]
+  \item Extends decision support by combining disease, weather, market, and advisory knowledge.
+  \item Produces preliminary evidence of technical feasibility and reliability.
+\end{itemize}
+
+\textbf{2) Key components/features}
+\begin{itemize}[noitemsep]
+  \item Integrated advisory: disease + weather + seasonal + RAG guidance.
+  \item Market module: realistic regional reference prices and trend/prediction endpoints.
+  \item Reliability controls: confidence/margin/entropy logic and crop-gated checks.
+\end{itemize}
+
+\textbf{3) Technical work involved}
+\begin{itemize}[noitemsep]
+  \item Refine inference handling for real-world images and uncertain cases.
+  \item Standardize weather responses (including wind speed and units).
+  \item Integrate market endpoints and frontend visualizations.
+  \item Document preprocessing and implementation flow for reproducibility.
+\end{itemize}
+
+\textbf{4) Scope and limitations}
+\begin{itemize}[noitemsep]
+  \item Scope: integrated and testable advisory platform with preliminary outputs.
+  \item Limitation: not yet a full field pilot; continued calibration is needed with more real user images.
+\end{itemize}
+
+\textbf{5) TRL:} \textbf{TRL 6} (demonstrated as an integrated system in a relevant environment).
+
+\section*{How These Deliverables Build to the Final Outcome}
+\begin{itemize}[noitemsep]
+  \item Deliverable 1 proves core technical feasibility.
+  \item Deliverable 2 proves integrated decision-support capability.
+  \item The final deliverable builds on both to produce a stronger validated system.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Item} & \textbf{11th February} & \textbf{28th February} \\
+\midrule
+Type & Functional prototype + trained model baseline & Integrated system + preliminary analytical results \\
+Main objective & Disease + weather feasibility & Multi-module advisory integration and reliability \\
+TRL & 5 & 6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

@@ -1,0 +1,146 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{hyperref}
+
+\title{\textbf{AI-Powered Smart Agriculture Advisory System}\\
+\large Proposal Alignment and Implementation Process}
+\author{Project Team}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Purpose of this Document}
+This document states what has been implemented in the project and how it aligns with the approved proposal.
+\begin{itemize}[noitemsep]
+  \item It maps proposal requirements to implementation status.
+  \item It documents the technical process followed from dataset preparation to system integration.
+  \item It records current scope based on existing code and tested functionality.
+\end{itemize}
+
+\section{Project Context}
+\textbf{Project:} AI-powered advisory system for smallholder farmers in Uganda.\\
+\textbf{Core modules implemented:} Disease detection, weather advisory, market trends, RAG chat advisory, seasonal guidance, and authenticated web interface.
+
+\section{Proposal Requirements Traceability}
+\begin{longtable}{p{4.7cm} p{2.8cm} p{7.9cm}}
+\toprule
+\textbf{Proposal Requirement} & \textbf{Status} & \textbf{Current Implementation Evidence} \\
+\midrule
+Image model for crop disease diagnosis & Implemented & CNN-based pipeline with MobileNetV2 training, ONNX export, inference API, confidence controls, crop gating, and treatment mapping. \\
+Weather forecast integration + localized advisory & Implemented & Backend weather service uses OpenWeatherMap (primary) and Open-Meteo fallback for real data; advisory text generated from weather conditions. \\
+Market price updates and prediction & Implemented (prototype level) & Market module uses realistic regional reference price configuration and trend/prediction endpoints for supported crops. \\
+Mobile-friendly advisory platform & Implemented & React frontend with protected routes and pages for dashboard, weather, disease, market, seasonal guide, and AI chat. \\
+Advisory knowledge support (RAG) & Implemented & RAG module provides retrieval-based agricultural guidance through the chat endpoint. \\
+\bottomrule
+\end{longtable}
+
+\section{Implementation Process Used in This Project}
+\subsection{1) Problem Framing and Scope Definition}
+\begin{itemize}[noitemsep]
+  \item Target users: smallholder farmers in Uganda.
+  \item Priority decisions: disease diagnosis, weather-informed actions, market awareness.
+  \item Scope control: build a stable, testable prototype first with reliable web/mobile access.
+\end{itemize}
+
+\subsection{2) Dataset Selection and Preparation (Disease Model)}
+\textbf{Dataset structure used:}
+\begin{itemize}[noitemsep]
+  \item folder-per-class leaf images (PlantVillage-style structure),
+  \item classes focused on supported crops in model scope (tomato, potato, pepper families).
+\end{itemize}
+
+\textbf{Preprocessing pipeline:}
+\begin{itemize}[noitemsep]
+  \item class discovery from dataset folders,
+  \item label-map creation (\texttt{label\_map.json}),
+  \item split strategy: 70\% train, 15\% validation, 15\% test,
+  \item image transforms: resize to 224x224, ImageNet normalization,
+  \item training augmentations for generalization (crop/flip/affine/jitter/erasing).
+\end{itemize}
+
+\textbf{Notebook alignment:}
+\begin{itemize}[noitemsep]
+  \item \texttt{notebooks/data\_preparation\_and\_processing.ipynb} is scoped to disease-image preprocessing only.
+\end{itemize}
+
+\subsection{3) Model Training and Regularization}
+\begin{itemize}[noitemsep]
+  \item Backbone: MobileNetV2 transfer learning.
+  \item Loss/optimizer improvements: label smoothing + AdamW with weight decay.
+  \item Goal: reduce overfitting and improve real-world generalization.
+\end{itemize}
+
+\subsection{4) Model Export and Inference}
+\begin{itemize}[noitemsep]
+  \item Best checkpoint exported to ONNX for fast inference.
+  \item Inference includes confidence/margin/entropy signals and lightweight TTA.
+  \item API prevents forced diagnosis for unsupported or very uncertain inputs.
+\end{itemize}
+
+\subsection{5) Input Safety and Real-World Robustness}
+\begin{itemize}[noitemsep]
+  \item Upload validation: type, size, readability, minimum resolution.
+  \item Crop selection gate: user must select supported crop before inference.
+  \item Crop-conditioned fallback: if global class is uncertain/mismatched, choose strongest class within selected crop family when confidence is sufficient.
+  \item Error-first UX: clear message, no misleading result on hard-fail cases.
+\end{itemize}
+
+\subsection{6) Weather and Market Modules}
+\textbf{Weather:}
+\begin{itemize}[noitemsep]
+  \item Real weather from OpenWeatherMap (primary),
+  \item real fallback from Open-Meteo,
+  \item standardized output includes wind speed and units.
+\end{itemize}
+
+\textbf{Market:}
+\begin{itemize}[noitemsep]
+  \item Realistic regional reference data configuration,
+  \item history/trend/prediction API endpoints,
+  \item frontend charts for decision support.
+\end{itemize}
+
+\subsection{7) Advisory Layer and User Interface}
+\begin{itemize}[noitemsep]
+  \item RAG chat module for question-answer guidance.
+  \item Seasonal recommendations adapted to Uganda context.
+  \item Dashboard-style frontend for practical farmer workflow.
+\end{itemize}
+\section{Reproducible Workflow}
+\subsection{A) Environment Setup}
+\begin{itemize}[noitemsep]
+  \item Install backend dependencies from \texttt{requirements.txt}.
+  \item Copy \texttt{backend/.env.example} to \texttt{backend/.env}.
+  \item Set \texttt{OPENWEATHER\_API\_KEY} for live weather.
+\end{itemize}
+
+\subsection{B) Disease Pipeline Steps}
+\begin{enumerate}[noitemsep]
+  \item Place dataset under \texttt{dataset/plant\_village/}.
+  \item Generate/check label map and dataset info.
+  \item Train model with updated augmentations/regularization.
+  \item Export ONNX model and verify inference endpoint.
+  \item Validate unknown/mismatch handling with real photos.
+\end{enumerate}
+
+\subsection{C) Verification Checklist}
+\begin{itemize}[noitemsep]
+  \item Test one valid tomato/potato/pepper image each.
+  \item Test one unsupported-crop image (expect clear error).
+  \item Test weather output (including wind speed field).
+  \item Test market price + prediction chart display.
+  \item Test one advisory chat query.
+\end{itemize}
+
+\section{Conclusion}
+The project currently delivers a strong technical prototype aligned with the implemented AI objectives (disease, weather, market, and advisory support), and this document reflects only the components that are already built and testable in the existing codebase.
+
+\end{document}
+

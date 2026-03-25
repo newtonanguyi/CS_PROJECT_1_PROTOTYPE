@@ -1,0 +1,224 @@
+\documentclass[final]{beamer}
+
+% ========= Poster setup (beamerposter) =========
+\usepackage[size=a0,scale=0.98]{beamerposter}
+\usetheme{default}
+\usecolortheme{default}
+
+% ========= Packages =========
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{ragged2e}
+
+% ========= Style =========
+\definecolor{BrandGreen}{HTML}{16A34A}
+\definecolor{BrandDark}{HTML}{0F172A}
+\definecolor{BrandGray}{HTML}{334155}
+\setbeamercolor{title}{fg=BrandDark}
+\setbeamercolor{block title}{fg=white,bg=BrandGreen}
+\setbeamercolor{block body}{fg=BrandDark,bg=white}
+\setbeamerfont{title}{size=\huge,series=\bfseries}
+\setbeamerfont{block title}{size=\Large,series=\bfseries}
+\setbeamerfont{block body}{size=\normalsize}
+
+\setlist[itemize]{leftmargin=1.2em,noitemsep,topsep=0.2em}
+\setlength{\tabcolsep}{10pt}
+\setlength{\parskip}{0.15em}
+\setlength{\parindent}{0pt}
+
+% ========= Helper macros =========
+\newcommand{\imgplaceholder}[2]{%
+  \begin{center}
+    \fbox{%
+      \begin{minipage}[c][#2][c]{0.96\linewidth}
+        \centering
+        {\large \textbf{Image Placeholder}}\\[0.25em]
+        {\normalsize #1}\\[0.15em]
+        {\footnotesize (Replace with \texttt{\string\includegraphics} or a screenshot/figure.)}
+      \end{minipage}
+    }%
+  \end{center}
+}
+
+% ========= Poster metadata =========
+\title{Smart AI Advisory System for Smallholder Farmers\\[0.3em]\large Full-stack Decision Support: Disease Detection, Weather Intelligence, Market Insights, and RAG Advisory}
+\author{Project Team \hspace{1.5em} \textbullet \hspace{1.5em} Department/Institution \hspace{1.5em} \textbullet \hspace{1.5em} Uganda-focused context}
+\institute{}
+\date{}
+
+\begin{document}
+\begin{frame}[t]
+
+% ====================== Header ======================
+\begin{columns}[t,totalwidth=\linewidth]
+  \begin{column}{0.74\linewidth}
+    \vspace{-0.6em}
+    {\usebeamerfont{title}\color{BrandDark}\inserttitle\par}
+    \vspace{0.35em}
+    {\Large \color{BrandGray}\insertauthor\par}
+    \vspace{0.2em}
+    {\normalsize \color{BrandGray}Backend: Django REST + JWT \ \ \textbullet\ \ Frontend: React + Tailwind \ \ \textbullet\ \ AI: ONNX (MobileNetV2) + ChromaDB RAG}
+  \end{column}
+  \begin{column}{0.26\linewidth}
+    \vspace{-0.6em}
+    % Replace with your institution/project logo(s)
+    \imgplaceholder{Project/Institution Logo(s)}{6.2cm}
+    % Optional QR code to repo/demo
+    \imgplaceholder{QR Code (Demo/Repo)}{4.8cm}
+  \end{column}
+\end{columns}
+
+\vspace{0.55em}
+
+% ====================== Body ======================
+\begin{columns}[t,totalwidth=\linewidth]
+
+% ---------- Left column ----------
+\begin{column}{0.33\linewidth}
+
+\begin{block}{Introduction}
+\justifying
+Smallholder farmers face compounding constraints: limited access to timely agronomic expertise, delayed disease diagnosis, uncertain weather, and unreliable market information. The \textbf{Smart AI Advisory System} is a full-stack platform that consolidates \textbf{plant disease screening}, \textbf{weather-driven guidance}, \textbf{market price trends and short-horizon forecasts}, and \textbf{knowledge-grounded advisory} into one practical workflow.
+\end{block}
+
+\begin{block}{Literature Review (Brief)}
+\begin{itemize}
+  \item \textbf{Computer Vision for plant disease}: transfer learning (e.g., MobileNet-family CNNs) is widely used for leaf-image classification under constrained compute, but struggles on out-of-distribution and low-quality field photos.
+  \item \textbf{Weather-informed agronomy}: decision support often combines forecast data with rule-based agronomic thresholds (temperature, humidity, rainfall probability) to recommend actions (e.g., spraying windows, irrigation scheduling).
+  \item \textbf{Market analytics}: simple statistical or regression baselines can provide short-term trend signals, though real accuracy depends strongly on real market feeds and seasonality.
+  \item \textbf{RAG advisory}: vector search over curated documents can ground responses in known best practices; quality depends on the coverage and freshness of the knowledge base.
+\end{itemize}
+\end{block}
+
+\begin{block}{Problem Statement}
+\begin{itemize}
+  \item \textbf{Delayed diagnosis}: farmers may treat diseases late or incorrectly due to lack of fast screening tools.
+  \item \textbf{Uncertain planning}: weather variability affects planting, irrigation, and spraying decisions.
+  \item \textbf{Price uncertainty}: farmers lack accessible, comparable price trends to plan sales or storage.
+  \item \textbf{Fragmented advice}: information is scattered across sources; users need a single interface with consistent guidance.
+\end{itemize}
+\end{block}
+
+\begin{block}{Objectives}
+\begin{itemize}
+  \item Build a usable platform with \textbf{secure authentication} and mobile-friendly UI for smallholder workflows.
+  \item Implement \textbf{image-based disease detection} for supported crops using an exportable model (ONNX) with safety checks for unreliable inputs.
+  \item Provide \textbf{weather intelligence} with actionable agronomic advice using real forecast providers and fallbacks.
+  \item Provide \textbf{market price visibility} with deterministic historical trends and a baseline 7-day prediction.
+  \item Integrate a \textbf{RAG advisory module} (ChromaDB + sentence embeddings) and expose a chat-style interface for practical guidance.
+\end{itemize}
+\end{block}
+
+\end{column}
+
+% ---------- Middle column ----------
+\begin{column}{0.34\linewidth}
+
+\begin{block}{Solution Overview (What We Implemented)}
+\begin{itemize}
+  \item \textbf{Frontend (React)}: Login/Register, Dashboard, Disease Detection, Weather, Market Prices, Seasonal Guide, and Chat Advisory pages.
+  \item \textbf{Backend (Django REST)}: modular apps (\texttt{users}, \texttt{disease\_detection}, \texttt{weather}, \texttt{market}, \texttt{rag}, \texttt{advisory}) exposed under \texttt{/api/}.
+  \item \textbf{Security}: JWT-based authentication; endpoints are protected (\texttt{IsAuthenticated}) by default.
+  \item \textbf{Disease detection}: ONNX inference with upload validation (type/size/dimensions) and \textbf{crop-selection gating} (\textbf{Tomato, Potato, Pepper Bell} only). Low-confidence or unsupported inputs return \textbf{no diagnosis} with an explanatory message; borderline cases can return a \textbf{cautious result} with warnings.
+  \item \textbf{Weather}: OpenWeatherMap primary; \textbf{Open-Meteo fallback} (no key required) if OpenWeather fails; a final sample fallback keeps the UI functional.
+  \item \textbf{Market}: realistic baseline prices configurable via \texttt{backend/market/data/price\_config.json}; deterministic history generation; 7-day \textbf{linear regression} forecast with a clear disclaimer.
+  \item \textbf{RAG}: ChromaDB in-process vector store + \texttt{all-MiniLM-L6-v2} embeddings; default knowledge base auto-initializes if empty; top-\(k\) document retrieval powers chat answers.
+  \item \textbf{Seasonal guide}: month-based recommendations adapted to Uganda’s bimodal rainfall pattern (rainy vs dry periods).
+\end{itemize}
+\end{block}
+
+\begin{block}{System Architecture}
+\imgplaceholder{High-level architecture diagram (React \(\rightarrow\) Django REST \(\rightarrow\) ONNX/ChromaDB \(\rightarrow\) external weather APIs)}{12.0cm}
+\vspace{-0.3em}
+\begin{itemize}
+  \item \textbf{Client}: React + Tailwind UI, protected routes, API service layer.
+  \item \textbf{API}: Django REST endpoints for auth, disease, weather, market, advisory, and RAG.
+  \item \textbf{AI/ML}: ONNX Runtime for disease inference; embeddings + ChromaDB for retrieval.
+  \item \textbf{External}: OpenWeatherMap and Open-Meteo for weather data.
+\end{itemize}
+\end{block}
+
+\begin{block}{Key Features (User-facing)}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Feature} & \textbf{What the user gets} \\
+\midrule
+Disease Detection & Upload leaf image (with selected crop) \(\rightarrow\) predicted class + confidence + treatments; safe rejection on unreliable inputs. \\
+Weather Intelligence & Current + forecast-derived rain risk + wind speed; rule-based agronomic guidance; real providers with fallback. \\
+Market Prices & Current prices, deterministic history charts, and a 7-day forecast (baseline regression). \\
+AI Chat Advisory & Chat UI that retrieves best-practice snippets from the knowledge base (RAG) and returns structured guidance. \\
+Seasonal Guide & Month-based activities and recommended crops tailored to Uganda’s seasons. \\
+\bottomrule
+\end{tabularx}
+\end{block}
+
+\end{column}
+
+% ---------- Right column ----------
+\begin{column}{0.33\linewidth}
+
+\begin{block}{Implementation Snapshots (Leave space for visuals)}
+\imgplaceholder{Screenshot: Dashboard (quick actions + weather snapshot)}{7.2cm}
+\imgplaceholder{Screenshot: Disease Detection result (confidence + treatment)}{7.2cm}
+\imgplaceholder{Screenshot: Market chart + prediction panel}{7.2cm}
+\imgplaceholder{Screenshot: Chat Advisory conversation}{7.2cm}
+\end{block}
+
+\begin{block}{Evaluation \& Results (Reported / Expected)}
+\justifying
+The system is implemented end-to-end and runs locally with protected APIs. Where formal field evaluation is pending, we report measured or stated ranges consistent with the current implementation:
+\begin{itemize}
+  \item \textbf{Disease detection (MobileNetV2/PlantVillage)}: typical accuracy range \(\sim 85\%\)–\(92\%\) on held-out test data after training; inference returns top prediction and confidence. Performance degrades on low-quality or unsupported crops; therefore, the API includes strong validation and an unknown/cautious path.
+  \item \textbf{RAG retrieval}: top-\(k\) semantic retrieval from a curated default knowledge base; response quality depends on document coverage and retrieval relevance.
+  \item \textbf{Market prediction}: linear regression provides fast, interpretable short-horizon trend signals; results include a cautionary note (not a guarantee of real market outcomes).
+  \item \textbf{Weather advice}: advice is rule-based over forecast attributes (temperature, humidity, rain prediction, wind speed); data comes from live APIs when available.
+\end{itemize}
+\vspace{0.4em}
+\imgplaceholder{Optional: Confusion matrix / accuracy plot for disease model}{6.2cm}
+\end{block}
+
+\begin{block}{Limitations (Current)}
+\begin{itemize}
+  \item \textbf{Disease scope}: supported crops are limited to \textbf{Tomato, Potato, Pepper Bell}; other crops are rejected to prevent misleading diagnoses.
+  \item \textbf{RAG knowledge}: knowledge base is curated and finite; it does not automatically crawl the web or guarantee region-specific nuance for every district.
+  \item \textbf{Market realism}: prices are grounded in configurable baselines and deterministic variation, but are not yet connected to live market feeds.
+  \item \textbf{Field validation}: full field trials and user studies are not yet included in this codebase.
+\end{itemize}
+\end{block}
+
+\begin{block}{Future Work}
+\begin{itemize}
+  \item Expand disease classes and supported crops using additional field datasets and augmentation; evaluate robustness on real farmer images.
+  \item Add live market integrations and stronger time-series models (e.g., ARIMA/Prophet/LSTM) with tracked error metrics.
+  \item Improve RAG with more Uganda-specific documents, multilingual support, and feedback-driven evaluation.
+  \item Add offline/low-bandwidth modes (caching, SMS/USSD alerts) for rural deployment constraints.
+\end{itemize}
+\end{block}
+
+\begin{block}{References (Short)}
+\begin{itemize}
+  \item PlantVillage dataset (leaf disease imagery) for model training benchmarks.
+  \item OpenWeatherMap and Open-Meteo for forecast data access.
+  \item Sentence Transformers (\texttt{all-MiniLM-L6-v2}) and ChromaDB for retrieval-augmented advisory.
+\end{itemize}
+\end{block}
+
+\end{column}
+
+\end{columns}
+
+\vspace{0.35em}
+\begin{center}
+{\large \color{BrandGray}\textbf{Demo note:} APIs run on \texttt{http://localhost:8000} and the React UI on \texttt{http://localhost:3000}. Most endpoints require JWT authentication.}
+\end{center}
+
+\end{frame}
+\end{document}
+

@@ -40,10 +40,10 @@ const SeasonalGuide = () => {
 
   const getSeasonColor = (season) => {
     const colors = {
-      Spring: 'bg-green-100 text-green-800 border-green-200',
-      Summer: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      Fall: 'bg-orange-100 text-orange-800 border-orange-200',
-      Winter: 'bg-blue-100 text-blue-800 border-blue-200',
+      'First Rainy Season': 'bg-green-100 text-green-800 border-green-200',
+      'Second Rainy Season': 'bg-blue-100 text-blue-800 border-blue-200',
+      'Mid-Year Dry Season': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'End-Year Dry Season': 'bg-orange-100 text-orange-800 border-orange-200',
     };
     return colors[season] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
@@ -175,6 +175,8 @@ const SeasonalGuide = () => {
 };
 
 export default SeasonalGuide;
+
+
 
 
 

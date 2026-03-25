@@ -1,0 +1,94 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1.8cm]{geometry}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{parskip}
+\setlength{\parskip}{0.35em}
+
+\title{\textbf{AI-Powered Smart Agriculture Advisory System for Smallholder Farmers in Uganda}\\[0.3em]
+\large Response to Research Projects I Poster Feedback}
+\author{Project Team}
+\date{}
+
+\begin{document}
+\maketitle
+
+\textbf{Scope note:} This report critically engages with technical feedback received during the poster session and documents how the project was defended, refined, and improved.
+
+\section*{Selected Technical Comments and Responses}
+
+\textbf{Comment 1 (Faculty Reviewer):} \emph{``The disease model appears to force predictions even for unsupported crop leaves.''}
+
+\textbf{Context:} This directly affects the core objective of accurate image-based disease diagnosis and the reliability of the prototype.
+
+\textbf{Response (Accepted):} The critique was valid. Early inference behavior could still produce overconfident predictions on out-of-distribution inputs, which risked misleading users.
+
+\textbf{Changes made:}
+\begin{itemize}[noitemsep]
+  \item Added strict upload validation (file type, size, readability, minimum resolution).
+  \item Added unsupported-input handling: no diagnosis is returned when confidence is insufficient.
+  \item Added crop-selection gate and crop-family consistency checks in the API.
+  \item Added crop-conditioned fallback for borderline realistic inputs to reduce unnecessary rejection.
+\end{itemize}
+
+\textbf{Comment 2 (Second-Year Reviewer):} \emph{``The weather module sometimes misses key fields like wind speed, so farmers cannot fully trust the advisory.''}
+
+\textbf{Context:} This applies to the weather integration objective and the practical usability of advisory outputs.
+
+\textbf{Response (Accepted):} Valid and relevant. Missing weather attributes reduced trust and weakened the practical value of recommendations.
+
+\textbf{Changes made:}
+\begin{itemize}[noitemsep]
+  \item Standardized weather response schema to always include wind speed and units.
+  \item Integrated OpenWeatherMap (primary) and Open-Meteo fallback for real data continuity.
+  \item Updated frontend weather card to correctly render wind speed with API-provided units.
+\end{itemize}
+
+\textbf{Comment 3 (Industry Guest Reviewer):} \emph{``Market data looked synthetic; justify realism or use real references.''}
+
+\textbf{Context:} This applies to the market-information objective and credibility of recommendations.
+
+\textbf{Response (Accepted):} Valid. Purely synthetic market values were insufficient for a realistic advisory workflow.
+
+\textbf{Changes made:}
+\begin{itemize}[noitemsep]
+  \item Replaced random mock generation with realistic regional reference configuration.
+  \item Implemented deterministic, reproducible history generation from configured baselines.
+  \item Preserved API contracts so frontend charts continued working without regressions.
+\end{itemize}
+
+\textbf{Comment 4 (Methodology Panel Reviewer):} \emph{``Your preprocessing notebook mixes disease, market, and RAG, making the disease data pipeline unclear.''}
+
+\textbf{Context:} This concerns methodological clarity, reproducibility, and alignment between documented workflow and actual model training.
+
+\textbf{Response (Accepted):} Valid. The notebook required tighter scope to maintain methodological clarity and reproducibility.
+
+\textbf{Changes made:}
+\begin{itemize}[noitemsep]
+  \item Refactored notebook to disease-image preprocessing only.
+  \item Added defensive checks so cells run cleanly even when optional files/packages are unavailable.
+  \item Removed market/RAG executable cells from this notebook and replaced with explicit scope notes.
+\end{itemize}
+
+\textbf{Comment 5 (Technical Chair):} \emph{``Your rejection thresholds became too strict after safety updates; real-world photos may be rejected excessively.''}
+
+\textbf{Context:} This affects both model robustness and deployment feasibility for smallholder users with varying camera quality.
+
+\textbf{Response (Partially Accepted):} The concern was valid, but complete removal of safety checks was not acceptable due to misdiagnosis risk. A calibrated middle ground was adopted.
+
+\textbf{Changes made:}
+\begin{itemize}[noitemsep]
+  \item Recalibrated confidence/margin/entropy thresholds to reduce over-rejection.
+  \item Added a cautious-result path (with warning) for plausible but low-confidence cases.
+  \item Kept hard rejection for clearly unsupported or unreliable inputs.
+\end{itemize}
+
+\section*{Critical Reflection}
+The poster feedback significantly improved the project in three ways. First, it increased \textbf{rigour}: uncertain predictions are now handled explicitly, and preprocessing documentation is aligned to the actual training pipeline. Second, it improved \textbf{feasibility}: the system now balances safety and usability through calibrated inference and fallback logic rather than binary accept/reject decisions. Third, it improved \textbf{clarity}: architecture, data scope, and module behavior are now easier to explain and defend during evaluation.
+
+Overall, the feedback shifted the project from a feature-complete prototype toward a more defensible and deployment-aware system for Ugandan smallholder farming contexts.
+
+\end{document}
+

@@ -133,13 +133,16 @@ POST /api/disease/train/
 
 ### Environment Variables
 
-Create a `.env` file in the backend directory:
+Copy `backend/.env.example` to `backend/.env` and set your values:
 
 ```env
-OPENWEATHER_API_KEY=your_openweather_api_key_here
+OPENWEATHER_API_KEY=your_openweathermap_api_key_here   # Get a free key at openweathermap.org for real weather
 SECRET_KEY=your-secret-key-here
 DEBUG=True
 ```
+
+- **Weather:** With a valid `OPENWEATHER_API_KEY`, the app uses live data from OpenWeatherMap. Without it, sample data is shown so the app still runs.
+- **Market prices:** Realistic data is loaded from `backend/market/data/price_config.json` (based on FAO/regional Uganda–East Africa statistics). The same file can be updated with new reference prices.
 
 ### CORS Settings
 
@@ -220,8 +223,8 @@ CORS is configured for `http://localhost:3000`. Update `CORS_ALLOWED_ORIGINS` in
 ## 📝 Notes
 
 - The disease detection model needs to be trained before use
-- Weather API requires OpenWeatherMap API key (falls back to mock data if not set)
-- Market prices use mock data (can be replaced with real API)
+- Weather: set `OPENWEATHER_API_KEY` in `.env` for real data (free at openweathermap.org); otherwise sample data is shown
+- Market prices use realistic FAO/regional data from `backend/market/data/price_config.json` (Uganda/East Africa reference). Update that file or plug in a live API for different sources
 - RAG system initializes with default knowledge base on first use
 
 ## 🤝 Contributing
@@ -240,6 +243,8 @@ This project is licensed under the MIT License.
 - PlantVillage dataset for disease detection training
 - OpenWeatherMap for weather data
 - All open-source libraries and frameworks used
+
+
 
 
 
