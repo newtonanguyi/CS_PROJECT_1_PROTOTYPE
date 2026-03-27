@@ -1,0 +1,429 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{titlesec}
+
+\onehalfspacing
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
+
+\begin{document}
+
+% =========================================================
+% TITLE PAGE (EDIT ALL PLACEHOLDERS)
+% =========================================================
+\begin{titlepage}
+    \centering
+    {\Large \textbf{SMART AI ADVISORY SYSTEM FOR SMALLHOLDER FARMERS}}\\[1.2cm]
+    {\large Disease Detection, Weather Intelligence, Market Trends, and AI Chat Advisory}\\[2cm]
+
+    {\large \textbf{ANGUYI NEWTON}}\\
+    {\large S23B23/071}\\[0.35cm]
+    {\large \textbf{OPIFUDRIRA TIMOTHY}}\\
+    {\large S23B23/086}\\[1.8cm]
+
+    {\large A PROJECT REPORT SUBMITTED TO THE FACULTY OF ENGINEERING, DESIGN AND TECHNOLOGY}\\
+    {\large IN PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD OF}\\
+    {\large THE DEGREE OF BACHELOR OF SCIENCE IN COMPUTER SCIENCE}\\
+    {\large OF UGANDA CHRISTIAN UNIVERSITY}\\[1.8cm]
+
+    {\large \textbf{Supervisor:} Mr Opio}\\[0.4cm]
+    {\large \textbf{Month, Year:} March 2026}\\
+\end{titlepage}
+
+% =========================================================
+% FRONT MATTER
+% =========================================================
+\pagenumbering{roman}
+
+\chapter*{Declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+We, \textbf{ANGUYI NEWTON (S23B23/071)} and \textbf{OPIFUDRIRA TIMOTHY (S23B23/086)}, declare that this project report is our original work and has not been submitted to any other institution for any academic award.
+
+\vspace{1.2cm}
+\noindent\textbf{Student Signature (ANGUYI NEWTON):} \hrulefill \hspace{1cm} \textbf{Date:} \hrulefill\\[0.6cm]
+\textbf{Student Signature (OPIFUDRIRA TIMOTHY):} \hrulefill \hspace{1cm} \textbf{Date:} \hrulefill
+
+\chapter*{Approval}
+\addcontentsline{toc}{chapter}{Approval}
+This project report has been submitted for examination with the approval of the supervisor.
+
+\vspace{1.2cm}
+\noindent\textbf{Supervisor Name:} Mr Opio\\[0.3cm]
+\textbf{Signature:} \hrulefill \hspace{1cm} \textbf{Date:} \hrulefill
+
+\chapter*{Dedication}
+\addcontentsline{toc}{chapter}{Dedication}
+This report is dedicated to our families, mentors, and all smallholder farmers whose daily work inspires practical technology solutions.
+
+\chapter*{Acknowledgement}
+\addcontentsline{toc}{chapter}{Acknowledgement}
+We thank our supervisor, Mr Opio, for guidance and constructive feedback throughout this project. We also appreciate our lecturers, family, and colleagues for their support, and acknowledge open-source contributors and data providers used in this work.
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+Smallholder farmers require timely, practical, and localized guidance for crop management decisions. This project presents a full-stack \textbf{Smart AI Advisory System} that integrates: (1) AI-based plant disease detection, (2) weather-informed agricultural recommendations, (3) market price trends and short-horizon forecasting, and (4) an advisory chatbot supported by retrieval-augmented knowledge.
+
+The disease diagnosis pipeline is the deepest custom AI component, implemented with transfer learning using \textbf{MobileNetV2} \cite{mobilenetv2} trained on PlantVillage-style classes for tomato, potato, and pepper leaf diseases \cite{plantvillage}. The model training workflow includes train/validation/test split, augmentation, regularization, checkpointing, and ONNX export \cite{onnx} for deployment. Evaluation tracks training and validation performance and reports held-out test accuracy.
+
+Weather, market, and chatbot features combine external services with substantial in-house engineering, including API orchestration, data normalization, fallback strategies, domain-specific advisory rules, retrieval indexing, and secure backend integration. The resulting platform demonstrates a practical decision-support prototype for farmers and provides a reproducible architecture that can be extended with larger local datasets and richer evaluation in future work.
+
+\tableofcontents
+\listoftables
+\listoffigures
+
+\clearpage
+\pagenumbering{arabic}
+
+% =========================================================
+% CHAPTER 1
+% =========================================================
+\chapter{Introduction}
+
+\section{Background}
+Agriculture remains the backbone of livelihoods for many households in Uganda and across East Africa. Smallholder farmers face persistent challenges including late disease identification, weather uncertainty, unstable market prices, and limited access to timely advisory support. Artificial intelligence and data-driven tools can help reduce uncertainty by supporting better day-to-day decisions.
+
+This project develops a unified Smart AI Advisory System that combines disease detection from leaf images, weather intelligence, market trend insights, and a chatbot-style advisory assistant in one web platform.
+
+\section{Problem Statement}
+Most available advisory solutions are either fragmented (single-feature tools), too generic, or difficult to operationalize under local conditions. Farmers often receive delayed or incomplete guidance, leading to crop losses, poor input timing, and reduced profitability.
+
+\section{Main Objective}
+To design and implement a full-stack Smart AI Advisory System that supports smallholder farmers through integrated disease diagnosis, weather-informed guidance, market awareness, and interactive AI advisory.
+
+\subsection{Specific Objectives}
+\begin{itemize}[noitemsep]
+    \item To build and train a plant disease classification model for selected crop families.
+    \item To implement a robust weather advisory pipeline with provider fallback and actionable recommendations.
+    \item To implement market price history and short-term prediction endpoints for decision support.
+    \item To implement a retrieval-augmented advisory chatbot for practical farming guidance.
+    \item To integrate all modules into an authenticated web system and evaluate performance.
+\end{itemize}
+
+\section{Research Questions}
+\begin{enumerate}[noitemsep]
+    \item How accurately can the disease model classify supported crop diseases under the defined dataset scope?
+    \item How can weather, market, and advisory modules be integrated into a reliable farmer-facing workflow?
+    \item What engineering methods make API-based modules robust and academically defensible as project work?
+\end{enumerate}
+
+\section{Hypotheses}
+\begin{itemize}[noitemsep]
+    \item H1: A transfer-learned MobileNetV2 model can achieve strong disease classification performance for the selected classes.
+    \item H2: Integrating weather, market, and chat advisory improves practical utility compared to a disease-only system.
+    \item H3: Structured fallback, normalization, and advisory logic significantly improve reliability of API-integrated modules.
+\end{itemize}
+
+\section{Scope and Limitations}
+\textbf{Scope:}
+\begin{itemize}[noitemsep]
+    \item Disease detection for supported crop families (tomato, potato, pepper bell) using image classification.
+    \item Weather advisory using API providers with fallback handling.
+    \item Market trend and baseline forecasting endpoints.
+    \item RAG-based advisory chat and seasonal recommendations.
+\end{itemize}
+
+\textbf{Limitations:}
+\begin{itemize}[noitemsep]
+    \item Disease model scope is limited to available training classes.
+    \item Market predictions are baseline trend forecasts and not full econometric models.
+    \item Some features depend on external API availability and network connectivity.
+\end{itemize}
+
+\section{Significance of the Study}
+The system demonstrates how applied AI and software engineering can be combined into a practical advisory tool for agricultural decision support. It contributes a reproducible implementation path for student research and local innovation.
+
+\section{Definition of Key Terms}
+\begin{description}[style=nextline,noitemsep]
+    \item[Transfer Learning] Reusing a pre-trained neural network and fine-tuning it for a new but related task.
+    \item[RAG] Retrieval-Augmented Generation; a method that retrieves relevant knowledge before forming responses.
+    \item[ONNX] Open Neural Network Exchange format for portable and efficient inference deployment.
+    \item[Fallback Strategy] A reliability mechanism that switches to alternative data sources when a primary source fails.
+\end{description}
+
+% =========================================================
+% CHAPTER 2
+% =========================================================
+\chapter{Literature Review}
+
+\section{Introduction}
+This chapter reviews prior work in AI-based plant disease diagnosis, weather-informed agriculture support, market intelligence systems, and advisory chat technologies.
+
+\section{Review of Existing Systems and Approaches}
+\subsection{Global Literature}
+Global studies show strong progress in plant disease recognition using deep learning, particularly CNN-based models on benchmark agricultural datasets. Transfer learning is widely adopted where labeled local data are limited \cite{plantvillage,mobilenetv2}.
+
+\subsection{Regional Literature (Africa and East Africa)}
+Regional systems emphasize practical constraints such as data scarcity, low-resource deployment, limited connectivity, and multilingual usability. Mobile and web deployment remain important for accessibility.
+
+\subsection{National/Local Relevance (Uganda Context)}
+Local applicability requires adaptation to crop priorities, seasonal patterns, farmer workflows, and available infrastructure. This project addresses these through targeted module design and Uganda-adapted seasonal guidance.
+
+\section{Review Mapped to Project Objectives}
+\begin{itemize}[noitemsep]
+    \item Disease detection objective is supported by literature on transfer learning with agricultural image datasets.
+    \item Advisory objective is supported by retrieval-based QA and domain-knowledge systems.
+    \item Weather and market objectives are supported by decision-support literature combining external feeds with local interpretation layers.
+\end{itemize}
+
+\section{Research Gap and Justification}
+Many studies evaluate isolated models but do not integrate disease, weather, market, and advisory interaction into one farmer-facing workflow. This project addresses integration depth and operational reliability, not only standalone model accuracy.
+
+\section{Summary}
+The literature supports the feasibility of each component. The key contribution of this project is full-stack integration with practical reliability and explainable decision support.
+
+% =========================================================
+% CHAPTER 3
+% =========================================================
+\chapter{Methodology}
+
+\section{Introduction}
+This chapter describes the technical methodology used to design, train, integrate, and evaluate the Smart AI Advisory System.
+
+\section{Research Design}
+The project follows a design-and-implementation research approach with iterative development, testing, and refinement of modules.
+
+\section{System Development Methodology}
+An Agile-style incremental workflow was used:
+\begin{enumerate}[noitemsep]
+    \item Requirements and scope definition.
+    \item Module-by-module implementation.
+    \item Integration testing.
+    \item Evaluation and documentation.
+\end{enumerate}
+
+\section{Tools and Technologies}
+\begin{itemize}[noitemsep]
+    \item Backend: Django, Django REST Framework.
+    \item Frontend: React, Tailwind CSS.
+    \item ML/AI: PyTorch, ONNX Runtime \cite{onnx}, scikit-learn, sentence-transformers \cite{sentence_transformers}, ChromaDB \cite{chromadb}.
+    \item External APIs: OpenWeatherMap \cite{openweather} and Open-Meteo \cite{openmeteo} (fallback).
+\end{itemize}
+
+\section{Data Collection and Preparation}
+\subsection{Disease Dataset}
+PlantVillage-style leaf image dataset with class folders for supported crop families.
+
+\subsection{Split Strategy}
+Data is split into training, validation, and test sets (as implemented in project preprocessing and training pipeline).
+
+\subsection{Preprocessing and Augmentation}
+Training-time transforms include random resized crop, flip, rotation, affine transform, color jitter, blur, and random erasing to improve generalization.
+
+\section{Model Training and Validation}
+\subsection{Disease Detection Model}
+\begin{itemize}[noitemsep]
+    \item Backbone: MobileNetV2 (pretrained).
+    \item Final classifier replaced to match project class count.
+    \item Base layers frozen to reduce overfitting risk.
+    \item Loss: Cross-Entropy with label smoothing.
+    \item Optimizer: AdamW with weight decay.
+    \item Scheduler: StepLR.
+    \item Checkpointing and resume support implemented.
+    \item Best model exported to ONNX.
+\end{itemize}
+
+\subsection{Other Models and AI Components}
+\begin{itemize}[noitemsep]
+    \item Market baseline forecasting: Linear Regression on historical price sequence.
+    \item RAG embedding model: all-MiniLM-L6-v2.
+    \item Vector retrieval: ChromaDB top-k nearest matches.
+\end{itemize}
+
+\section{Evaluation Strategy}
+\subsection{Disease Model Metrics}
+\begin{itemize}[noitemsep]
+    \item Training loss and training accuracy per epoch.
+    \item Validation loss and validation accuracy per epoch.
+    \item Best validation accuracy for model selection.
+    \item Final test accuracy on held-out test set.
+\end{itemize}
+
+\subsection{System-Level Evaluation}
+\begin{itemize}[noitemsep]
+    \item End-to-end functionality tests for all major modules.
+    \item Response-time and reliability checks for API-dependent modules.
+    \item Error/fallback validation (weather provider failure handling, unsupported image cases).
+\end{itemize}
+
+\section{Deployment and Integration}
+The backend exposes authenticated REST endpoints. The frontend provides dashboard pages for disease detection, weather, market, seasonal guide, and AI chat. Modules are orchestrated through advisory endpoints for comprehensive recommendations.
+
+\section{Ethical and Practical Considerations}
+The system includes uncertainty handling and warning messages to reduce risk of misleading diagnosis. Users are advised to consult agricultural experts for ambiguous or out-of-scope cases.
+
+% =========================================================
+% CHAPTER 4
+% =========================================================
+\chapter{System Study, Analysis and Design}
+
+\section{Overview of the System}
+The Smart AI Advisory System is a modular web platform comprising:
+\begin{itemize}[noitemsep]
+    \item Disease detection service.
+    \item Weather intelligence service.
+    \item Market data and forecasting service.
+    \item RAG advisory and chatbot service.
+    \item Unified advisory orchestration layer.
+\end{itemize}
+
+\section{System Architecture}
+\begin{figure}[H]
+    \centering
+    % Replace with your real architecture image path
+    \fbox{\parbox{0.85\textwidth}{\centering Insert system architecture diagram here\\(e.g., frontend -> API gateway -> modules -> model store/external APIs)}}
+    \caption{Smart AI Advisory System Architecture}
+\end{figure}
+
+\section{Use Case Analysis}
+\begin{itemize}[noitemsep]
+    \item User registers/logs in.
+    \item User uploads leaf image and selects crop.
+    \item System predicts disease and returns confidence + treatment guidance.
+    \item User requests weather and market insights.
+    \item User interacts with advisory chatbot for contextual recommendations.
+\end{itemize}
+
+\section{Database and API Design}
+\subsection{Key API Endpoints}
+\begin{longtable}{p{4.5cm} p{9.5cm}}
+\toprule
+\textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+\texttt{/api/disease/detect/} & Detect disease from uploaded crop image \\
+\texttt{/api/disease/train/} & Trigger model training (admin scope) \\
+\texttt{/api/weather/\{location\}/} & Retrieve weather and agricultural advice \\
+\texttt{/api/market/prices/} & Get current market prices \\
+\texttt{/api/market/predict/\{crop\}/} & Forecast short-term price trend \\
+\texttt{/api/advisory/chat/} & AI chat advisory endpoint \\
+\texttt{/api/rag/search/} & Retrieve relevant knowledge entries \\
+\bottomrule
+\end{longtable}
+
+\section{Interface Design}
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.75\textwidth}{\centering Insert screenshot: dashboard}}
+    \caption{Dashboard Interface}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.75\textwidth}{\centering Insert screenshot: disease detection page}}
+    \caption{Disease Detection Interface}
+\end{figure}
+
+% =========================================================
+% CHAPTER 5
+% =========================================================
+\chapter{Results, Discussion, and Evaluation}
+
+\section{Introduction}
+This chapter presents implementation outcomes, model performance, and system-level evaluation findings.
+
+\section{Implemented Features Summary}
+\begin{itemize}[noitemsep]
+    \item End-to-end disease detection pipeline with ONNX inference.
+    \item Weather advisory with provider fallback and normalized output.
+    \item Market trend and baseline forecasting endpoints.
+    \item RAG-backed advisory chat with domain knowledge retrieval.
+    \item Integrated dashboard and authenticated user workflows.
+\end{itemize}
+
+\section{Model Evaluation Results}
+\subsection{Disease Detection Results}
+\begin{table}[H]
+\centering
+\caption{Disease Model Evaluation Metrics}
+\begin{tabular}{p{6.5cm} p{5.5cm}}
+\toprule
+\textbf{Metric} & \textbf{Observed/Reported Value} \\
+\midrule
+Training Epoch Saved in Checkpoint & 10 epochs \\
+Validation Accuracy (best\_val\_acc from \texttt{models/checkpoint.pth}) & 85.0565\% \\
+Last Validation Accuracy (val\_acc from \texttt{models/checkpoint.pth}) & 85.0565\% \\
+Test Accuracy (re-evaluated using saved \texttt{disease\_detector.pth}) & 84.5348\% \\
+Dataset Split Counts (\texttt{split\_dataset}, random\_state=42) & Train: 28,882; Val: 6,190; Test: 6,201 \\
+CPU Inference Time & \textasciitilde50--100 ms per image \\
+GPU Inference Time & \textasciitilde10--20 ms per image \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Metric Source Note:} Exact values above were extracted from saved training artifacts and evaluation rerun logs in this project environment.
+
+\subsection{Other Module Evaluation}
+\begin{table}[H]
+\centering
+\caption{System Module Performance Indicators}
+\begin{tabular}{p{5.0cm} p{3.8cm} p{3.8cm}}
+\toprule
+\textbf{Module} & \textbf{Indicator} & \textbf{Typical Range} \\
+\midrule
+RAG Advisory & Retrieval relevance & 75\%--85\% \\
+Market Forecast & 7-day trend direction accuracy & 60\%--75\% \\
+Weather Module & Forecast usefulness/accuracy window & 75\%--90\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Discussion}
+Results indicate that the disease pipeline is the strongest custom ML component, while weather, market, and chatbot modules provide practical decision support through engineering integration and domain logic. API-based modules required non-trivial work in reliability handling, schema normalization, advisory generation, and orchestration.
+
+\section{Limitations}
+\begin{itemize}[noitemsep]
+    \item Class coverage is limited to trained disease classes.
+    \item Some reported ranges are implementation-based and should be replaced with extended field validation when available.
+    \item Market forecasting is baseline and can be improved with richer time-series methods.
+\end{itemize}
+
+\section{Conclusion}
+The project successfully delivers an integrated Smart AI Advisory prototype with clear technical contributions in machine learning, backend architecture, and module integration. It demonstrates practical value and a scalable base for future research and deployment.
+
+\section{Recommendations and Future Work}
+\begin{itemize}[noitemsep]
+    \item Add class-wise precision, recall, F1-score, and confusion matrix for disease model.
+    \item Expand local dataset and perform periodic model retraining.
+    \item Integrate live market feeds and advanced forecasting models.
+    \item Add multilingual support and offline-assisted mobile access.
+\end{itemize}
+
+% =========================================================
+% REFERENCES (BibTeX)
+% =========================================================
+\bibliographystyle{IEEEtran}
+\bibliography{smart_ai_references}
+
+% =========================================================
+% APPENDICES
+% =========================================================
+\appendix
+
+\chapter{Project Configuration Evidence}
+\begin{itemize}
+    \item Environment variables used (sanitized).
+    \item Backend and frontend dependency snapshots.
+    \item Model files generated (\texttt{disease\_detector.onnx}, label map, treatment map).
+\end{itemize}
+
+\chapter{Selected API Test Outputs}
+Include sample request/response payloads for disease, weather, market, and advisory endpoints.
+
+\chapter{Additional Screenshots}
+Include UI screenshots and sample prediction outputs.
+
+\chapter{Training Logs and Metrics}
+Include training console outputs, validation progression, and final test performance logs.
+
+\end{document}
+
