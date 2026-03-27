@@ -52,11 +52,15 @@ export const diseaseAPI = {
 };
 
 // Weather API
+// STATUS: Supplementary feature. Functional but deprioritized for current project scope.
+// Planned for future work and extended deployment phase.
 export const weatherAPI = {
   getWeather: (location) => api.get(`/weather/${location}/`),
 };
 
 // Market API
+// STATUS: Supplementary feature. Functional but deprioritized for current project scope.
+// Planned for future work and extended deployment phase.
 export const marketAPI = {
   getPrices: (crop) => api.get('/market/prices/', { params: { crop } }),
   getHistory: (crop, days = 30) => api.get(`/market/history/${crop}/`, { params: { days } }),

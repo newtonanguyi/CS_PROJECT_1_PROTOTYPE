@@ -1,3 +1,7 @@
+# STATUS: Supplementary feature. Functional but deprioritized for current project scope.
+# Planned for future work and extended deployment phase.
+# SUPPLEMENTARY FEATURE - future work
+
 import os
 import requests
 from rest_framework.decorators import api_view, permission_classes

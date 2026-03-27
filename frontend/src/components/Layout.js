@@ -4,10 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   LayoutDashboard,
   MessageSquare,
-  Cloud,
   ScanLine,
-  TrendingUp,
-  Calendar,
+  BarChart3,
+  Sparkles,
   LogOut,
   Menu,
   X,
@@ -26,11 +25,10 @@ const Layout = ({ children }) => {
 
   const menuItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/chat', icon: MessageSquare, label: 'AI Chat' },
-    { path: '/weather', icon: Cloud, label: 'Weather' },
     { path: '/disease', icon: ScanLine, label: 'Disease Detection' },
-    { path: '/market', icon: TrendingUp, label: 'Market Prices' },
-    { path: '/seasonal', icon: Calendar, label: 'Seasonal Guide' },
+    { path: '/chat', icon: MessageSquare, label: 'Advisory Chat' },
+    ...(user?.is_staff ? [{ path: '/model-performance', icon: BarChart3, label: 'Model Performance' }] : []),
+    { path: '/more-features', icon: Sparkles, label: 'More Features', muted: true },
   ];
 
   return (
@@ -67,6 +65,8 @@ const Layout = ({ children }) => {
                   className={`flex items-center space-x-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-primary-50 text-primary-700'
+                      : item.muted
+                      ? 'text-gray-400 hover:bg-gray-50'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -114,6 +114,8 @@ const Layout = ({ children }) => {
                   className={`flex items-center space-x-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-primary-50 text-primary-700'
+                      : item.muted
+                      ? 'text-gray-400 hover:bg-gray-50'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >

@@ -1,3 +1,6 @@
+// STATUS: Supplementary feature. Functional but deprioritized for current project scope.
+// Planned for future work and extended deployment phase.
+
 import React, { useState, useEffect } from 'react';
 import { marketAPI } from '../services/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';

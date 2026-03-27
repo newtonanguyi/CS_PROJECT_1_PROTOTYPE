@@ -1,3 +1,7 @@
+# STATUS: Supplementary feature. Functional but deprioritized for current project scope.
+# Planned for future work and extended deployment phase.
+# SUPPLEMENTARY FEATURE - future work
+
 from django.urls import path
 from .views import get_market_prices, get_price_history, predict_price
 

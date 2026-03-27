@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { weatherAPI, advisoryAPI } from '../services/api';
+import { advisoryAPI } from '../services/api';
 import {
-  Cloud,
-  Thermometer,
-  Droplets,
-  TrendingUp,
   AlertCircle,
   ArrowRight,
-  Calendar,
   Sprout,
+  MessageSquare,
+  ScanLine,
+  BarChart3,
 } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [weather, setWeather] = useState(null);
   const [advisory, setAdvisory] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -23,9 +20,6 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         if (user?.location) {
-          const weatherData = await weatherAPI.getWeather(user.location);
-          setWeather(weatherData.data);
-
           const advisoryData = await advisoryAPI.getComprehensive({
             location: user.location,
             crop_type: '',
@@ -42,18 +36,13 @@ const Dashboard = () => {
     fetchData();
   }, [user]);
 
-  const quickActions = [
-    { icon: Cloud, label: 'Weather', path: '/weather', color: 'bg-blue-500' },
-    { icon: Sprout, label: 'Disease Detection', path: '/disease', color: 'bg-red-500' },
-    { icon: TrendingUp, label: 'Market Prices', path: '/market', color: 'bg-green-500' },
-    { icon: Calendar, label: 'Seasonal Guide', path: '/seasonal', color: 'bg-purple-500' },
-  ];
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome back, {user?.username || 'Farmer'}!</p>
+        <p className="text-gray-600 mt-1">
+          Welcome back, {user?.username || 'Farmer'}! Start with disease diagnosis, then ask the advisor for guidance.
+        </p>
       </div>
 
       {loading ? (
@@ -62,130 +51,116 @@ const Dashboard = () => {
         </div>
       ) : (
         <>
-          {/* Weather Snapshot */}
-          {weather && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Weather Snapshot</h2>
-                <Link
-                  to="/weather"
-                  className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center space-x-1"
-                >
-                  <span>View Details</span>
-                  <ArrowRight size={16} />
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Thermometer className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Temperature</p>
-                    <p className="text-2xl font-bold text-gray-900">{weather.temperature}°C</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-4 bg-cyan-50 rounded-lg">
-                  <div className="p-2 bg-cyan-100 rounded-lg">
-                    <Droplets className="w-6 h-6 text-cyan-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Humidity</p>
-                    <p className="text-2xl font-bold text-gray-900">{weather.humidity}%</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <Cloud className="w-6 h-6 text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Condition</p>
-                    <p className="text-lg font-semibold text-gray-900">{weather.description}</p>
-                  </div>
-                </div>
-              </div>
-              {weather.advice && (
-                <div className="mt-4 p-4 bg-primary-50 rounded-lg border border-primary-200">
-                  <p className="text-sm text-primary-800">{weather.advice}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Quick Actions */}
+          {/* Hero Actions (Primary Focus) */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {quickActions.map((action) => {
-                const Icon = action.icon;
-                return (
-                  <Link
-                    key={action.path}
-                    to={action.path}
-                    className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group"
-                  >
-                    <div className={`p-3 ${action.color} rounded-lg mb-3 group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-6 h-6 text-white" />
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-900">Start Here</h2>
+                <p className="text-gray-600 mt-1">
+                  Diagnose leaf disease with the AI model, then ask the advisor for next steps.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Link
+                to="/disease"
+                className="group rounded-xl border border-red-200 bg-red-50 p-6 hover:bg-red-100 transition"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-lg bg-red-600">
+                      <ScanLine className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">{action.label}</span>
-                  </Link>
-                );
-              })}
+                    <div>
+                      <p className="text-lg font-semibold text-gray-900">Diagnose Your Crop</p>
+                      <p className="text-sm text-gray-700">
+                        Upload a leaf image for disease detection (hero feature).
+                      </p>
+                    </div>
+                  </div>
+                  <ArrowRight className="text-red-700 group-hover:translate-x-1 transition" size={18} />
+                </div>
+              </Link>
+
+              <Link
+                to="/chat"
+                className="group rounded-xl border border-primary-200 bg-primary-50 p-6 hover:bg-primary-100 transition"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-lg bg-primary-600">
+                      <MessageSquare className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold text-gray-900">Ask the Advisor</p>
+                      <p className="text-sm text-gray-700">
+                        Chat for guidance, best practices, and treatment suggestions.
+                      </p>
+                    </div>
+                  </div>
+                  <ArrowRight className="text-primary-700 group-hover:translate-x-1 transition" size={18} />
+                </div>
+              </Link>
+            </div>
+
+            <div className="mt-4">
+              <Link
+                to="/model-performance"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900 inline-flex items-center gap-2"
+              >
+                <BarChart3 size={16} />
+                View model performance and field-testing template
+              </Link>
             </div>
           </div>
 
-          {/* Advisory Summary */}
-          {advisory && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Crop Advisory Summary</h2>
-              {advisory.comprehensive_advice ? (
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-gray-800">{advisory.comprehensive_advice}</p>
-                </div>
-              ) : (
-                <p className="text-gray-600">No advisory available at the moment.</p>
-              )}
-            </div>
-          )}
+          {/* Quick Actions */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Advisor Summary</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              This summary combines seasonal context and best practices (supporting information for disease diagnosis).
+            </p>
+            {advisory?.comprehensive_advice ? (
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-gray-800">{advisory.comprehensive_advice}</p>
+              </div>
+            ) : (
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-700">
+                  No advisory available yet. You can still use Disease Detection and the Advisory Chat.
+                </p>
+              </div>
+            )}
+          </div>
 
-          {/* Seasonal Recommendations */}
-          {advisory?.seasonal_recommendations && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Seasonal Recommendations</h2>
-                <Link
-                  to="/seasonal"
-                  className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center space-x-1"
-                >
-                  <span>View Guide</span>
-                  <ArrowRight size={16} />
-                </Link>
+          {/* Coming Soon (Demoted Features) */}
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
+            <h2 className="text-lg font-semibold text-gray-800">Coming Soon</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              These features are planned for a future phase. The current scope prioritizes disease detection and advisory chat.
+            </p>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="rounded-lg border border-gray-200 bg-white p-4 opacity-70">
+                <p className="font-medium text-gray-800">Weather Insights</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Forecast-based advice (supplementary feature).
+                </p>
               </div>
-              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <p className="font-medium text-purple-900 mb-2">
-                  {advisory.seasonal_recommendations.season} Season
+              <div className="rounded-lg border border-gray-200 bg-white p-4 opacity-70">
+                <p className="font-medium text-gray-800">Market Trends</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Reference prices and baseline prediction (supplementary feature).
                 </p>
-                <p className="text-sm text-purple-800 mb-3">
-                  {advisory.seasonal_recommendations.recommendation}
-                </p>
-                {advisory.seasonal_recommendations.suitable_crops && (
-                  <div>
-                    <p className="text-xs font-medium text-purple-700 mb-2">Suitable Crops:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {advisory.seasonal_recommendations.suitable_crops.map((crop, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 bg-white rounded text-xs text-purple-700 border border-purple-200"
-                        >
-                          {crop}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
-          )}
+            <div className="mt-3">
+              <Link to="/more-features" className="text-sm text-gray-600 hover:text-gray-900 inline-flex items-center gap-2">
+                <Sprout size={16} />
+                View supplementary modules
+              </Link>
+            </div>
+          </div>
         </>
       )}
     </div>

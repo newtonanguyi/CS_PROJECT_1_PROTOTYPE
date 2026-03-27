@@ -9,11 +9,20 @@ import Weather from './pages/Weather';
 import DiseaseDetection from './pages/DiseaseDetection';
 import MarketPrices from './pages/MarketPrices';
 import SeasonalGuide from './pages/SeasonalGuide';
+import ModelPerformance from './pages/ModelPerformance';
+import MoreFeatures from './pages/MoreFeatures';
 import Layout from './components/Layout';
 
 const PrivateRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return null;
   return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+const StaffRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user?.is_staff ? children : <Navigate to="/" />;
 };
 
 function App() {
@@ -79,6 +88,28 @@ function App() {
               <PrivateRoute>
                 <Layout>
                   <SeasonalGuide />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/model-performance"
+            element={
+              <PrivateRoute>
+                <StaffRoute>
+                  <Layout>
+                    <ModelPerformance />
+                  </Layout>
+                </StaffRoute>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/more-features"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <MoreFeatures />
                 </Layout>
               </PrivateRoute>
             }
