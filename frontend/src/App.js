@@ -11,6 +11,7 @@ import MarketPrices from './pages/MarketPrices';
 import SeasonalGuide from './pages/SeasonalGuide';
 import ModelPerformance from './pages/ModelPerformance';
 import MoreFeatures from './pages/MoreFeatures';
+import About from './pages/About';
 import Layout from './components/Layout';
 
 const PrivateRoute = ({ children }) => {
@@ -38,6 +39,16 @@ function App() {
               <PrivateRoute>
                 <Layout>
                   <Dashboard />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <About />
                 </Layout>
               </PrivateRoute>
             }

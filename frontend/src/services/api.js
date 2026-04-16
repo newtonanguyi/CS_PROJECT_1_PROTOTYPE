@@ -71,7 +71,19 @@ export const marketAPI = {
 export const advisoryAPI = {
   getComprehensive: (data) => api.post('/advisory/comprehensive/', data),
   getSeasonal: (month) => api.get('/advisory/seasonal/', { params: { month } }),
-  chat: (message, location) => api.post('/advisory/chat/', { message, location }),
+  chat: (messageOrPayload, location = '') => {
+    if (typeof messageOrPayload === 'object' && messageOrPayload !== null) {
+      return api.post('/advisory/chat/', messageOrPayload);
+    }
+    return api.post('/advisory/chat/', { message: messageOrPayload, location });
+  },
+};
+
+export const fieldSamplesAPI = {
+  create: (formData) =>
+    api.post('/field-samples/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 // RAG API

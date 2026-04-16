@@ -53,7 +53,9 @@ const Register = () => {
               <Sprout className="w-8 h-8 text-primary-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-            <p className="text-gray-600">Join Smart AI Advisory System</p>
+            <p className="text-gray-600 text-sm leading-relaxed px-1">
+              Join the AI-powered tomato disease detection and advisory system for smallholder farmers.
+            </p>
           </div>
 
           {error && (

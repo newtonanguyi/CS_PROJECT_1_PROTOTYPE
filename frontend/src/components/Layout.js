@@ -1,171 +1,92 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import {
-  LayoutDashboard,
-  MessageSquare,
-  ScanLine,
-  BarChart3,
-  Sparkles,
-  LogOut,
-  Menu,
-  X,
-} from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const menuItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/disease', icon: ScanLine, label: 'Disease Detection' },
-    { path: '/chat', icon: MessageSquare, label: 'Advisory Chat' },
-    ...(user?.is_staff ? [{ path: '/model-performance', icon: BarChart3, label: 'Model Performance' }] : []),
-    { path: '/more-features', icon: Sparkles, label: 'More Features', muted: true },
+  const nav = [
+    { path: '/disease', label: 'Diagnose' },
+    { path: '/chat', label: 'Advisory' },
+    { path: '/about', label: 'About' },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile sidebar */}
-      <div
-        className={`fixed inset-0 z-40 lg:hidden ${
-          sidebarOpen ? 'block' : 'hidden'
-        }`}
-      >
-        <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-75"
-          onClick={() => setSidebarOpen(false)}
-        />
-        <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white shadow-xl">
-          <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4">
-            <h1 className="text-xl font-bold text-primary-600">Smart AI Advisory</h1>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X size={24} />
-            </button>
-          </div>
-          <nav className="flex-1 space-y-1 px-4 py-4">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center space-x-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary-50 text-primary-700'
-                      : item.muted
-                      ? 'text-gray-400 hover:bg-gray-50'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="border-t border-gray-200 p-4">
-            <div className="mb-3 flex items-center space-x-3 px-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-700">
-                {user?.username?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">{user?.username || 'User'}</p>
-                <p className="text-xs text-gray-500">{user?.email || ''}</p>
-              </div>
+    <div className="min-h-screen bg-canvas">
+      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="h-16 flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-primary-600"
+              >
+                <path
+                  d="M20 4c-6 0-10 3-12 7-1.1 2.2-1.2 4.6-.6 6.8.2.7 1 .9 1.5.4l3.1-3.1c1.3-1.3 3.4-1.3 4.7 0l.4.4c.4.4 1 .4 1.4 0C20.6 11.9 21 9 21 6c0-1.1-.4-2-.9-2Z"
+                  fill="currentColor"
+                  opacity="0.9"
+                />
+                <path
+                  d="M4 20c6 0 10-3 12-7 1.1-2.2 1.2-4.6.6-6.8-.2-.7-1-.9-1.5-.4L12 8.1c-1.3 1.3-3.4 1.3-4.7 0l-.4-.4c-.4-.4-1-.4-1.4 0C3.4 12.1 3 15 3 18c0 1.1.4 2 .9 2Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span className="font-serif text-xl font-semibold text-slate-900">TomatoDoc</span>
+            </Link>
+
+            <nav className="hidden sm:flex items-center gap-6">
+              {nav.map((item) => {
+                const active = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`text-sm font-semibold transition ${
+                      active ? 'text-primary-700' : 'text-slate-700 hover:text-slate-900'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <span className="hidden md:inline text-sm text-slate-600">
+                {user?.username ? `Signed in as ${user.username}` : ''}
+              </span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center space-x-3 rounded-lg px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
-            >
-              <LogOut size={20} />
-              <span>Logout</span>
-            </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-1 flex-col border-r border-gray-200 bg-white">
-          <div className="flex h-16 items-center border-b border-gray-200 px-6">
-            <h1 className="text-xl font-bold text-primary-600">Smart AI Advisory</h1>
-          </div>
-          <nav className="flex-1 space-y-1 px-4 py-4">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center space-x-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary-50 text-primary-700'
-                      : item.muted
-                      ? 'text-gray-400 hover:bg-gray-50'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="border-t border-gray-200 p-4">
-            <div className="mb-3 flex items-center space-x-3 px-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-700">
-                {user?.username?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">{user?.username || 'User'}</p>
-                <p className="text-xs text-gray-500">{user?.email || ''}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center space-x-3 rounded-lg px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
-            >
-              <LogOut size={20} />
-              <span>Logout</span>
-            </button>
-          </div>
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8">{children}</main>
+
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 text-sm text-slate-600">
+          
         </div>
-      </div>
-
-      {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top bar */}
-        <div className="sticky top-0 z-10 flex h-16 items-center border-b border-gray-200 bg-white px-4 lg:px-6">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="text-gray-500 hover:text-gray-700 lg:hidden"
-          >
-            <Menu size={24} />
-          </button>
-          <div className="ml-auto flex items-center space-x-4">
-            <span className="text-sm text-gray-600">
-              Welcome, <span className="font-medium text-gray-900">{user?.username || 'User'}</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Page content */}
-        <main className="p-4 lg:p-6">{children}</main>
-      </div>
+      </footer>
     </div>
   );
 };

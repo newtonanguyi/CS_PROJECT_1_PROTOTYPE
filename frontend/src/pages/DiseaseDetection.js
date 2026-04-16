@@ -1,530 +1,618 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { diseaseAPI } from '../services/api';
-import { Upload, ScanLine, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Camera, Loader2, MoveRight, SendHorizontal } from 'lucide-react';
+import { diseaseAPI, fieldSamplesAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+
+const LeafOutlineIcon = ({ size = 34, className = '' }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    className={className}
+    aria-hidden="true"
+  >
+    <path
+      d="M20.5 3.5c-7.4.6-12.2 4.7-14.6 8.9C3.3 16.9 4.4 20 8 20c4.2 0 7.7-3.3 9.2-7.2 1-2.6 1.6-6.3 3.3-9.3Z"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M6.2 17.8c2.2-3.2 6.6-6.9 12.2-9.5"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const HealthyCheckmark = () => (
+  <svg
+    className="td-checkmark"
+    width="22"
+    height="22"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path
+      d="M20 6L9 17l-5-5"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="td-checkmark-path"
+    />
+  </svg>
+);
+
+const severityIcon = (stage) => {
+  const s = String(stage || '').toLowerCase();
+  if (s === 'early') return '🌱';
+  if (s === 'mid') return '⚠️';
+  if (s === 'late') return '🔴';
+  return '';
+};
+
+const severityBadge = (stage) => {
+  const s = String(stage || '').toLowerCase();
+  if (s === 'early') return 'bg-green-100 text-green-900 border-green-200';
+  if (s === 'mid') return 'bg-accent-100 text-accent-900 border-accent-200';
+  if (s === 'late') return 'bg-red-100 text-red-900 border-red-200';
+  return 'bg-slate-100 text-slate-800 border-slate-200';
+};
+
+const diseaseTitleClass = (statusValue) => {
+  if (statusValue === 'detected') return 'text-red-700';
+  if (statusValue === 'healthy') return 'text-primary-700';
+  return 'text-slate-900';
+};
 
 const DiseaseDetection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const galleryInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
   const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedCrop, setSelectedCrop] = useState('');
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraError, setCameraError] = useState('');
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const streamRef = useRef(null);
 
-  const formatClassName = (name) => {
-    if (!name) return 'Unknown or unsupported leaf';
-    return name.replace(/___/g, ' - ').replace(/_/g, ' ');
-  };
+  const [feedbackChoice, setFeedbackChoice] = useState(null); // true/false
+  const [feedbackNotes, setFeedbackNotes] = useState('');
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
 
-  const formatConfidence = (value) => {
-    if (typeof value !== 'number' || Number.isNaN(value)) return 'N/A';
-    return `${(value * 100).toFixed(1)}%`;
-  };
+  const coverage = useMemo(() => {
+    const v = Number(result?.leaf_coverage_pct);
+    return Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : null;
+  }, [result?.leaf_coverage_pct]);
 
-  const MAX_FILE_SIZE_MB = 10;
-  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+  const showAffectedRegions = useMemo(() => {
+    // Only show "affected regions" when disease was detected (Early/Late Blight).
+    // Healthy leaves should not display an attention/lesion overlay.
+    return result?.status === 'detected' && !!result?.gradcam_image;
+  }, [result?.gradcam_image, result?.status]);
 
-  const stopCamera = () => {
-    const stream = streamRef.current;
-    if (stream) {
-      stream.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
-  };
-
-  const openCamera = async () => {
-    setCameraError('');
+  const onPickFile = (f) => {
     setError('');
+    setFeedbackChoice(null);
+    setFeedbackNotes('');
+    setFeedbackMessage('');
     setResult(null);
 
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setCameraError('Camera is not supported in this browser. Please use file upload instead.');
+    if (!f) return;
+    if (!f.type?.startsWith('image/')) {
+      setError('Upload a JPG or PNG image.');
       return;
     }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setFile(f);
+    const url = URL.createObjectURL(f);
+    setPreviewUrl(url);
+  };
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-        audio: false,
-      });
-
-      streamRef.current = stream;
-      setCameraOpen(true);
-
-      // Ensure the video element exists before attaching stream.
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      }, 0);
-    } catch (e) {
-      const name = e?.name || '';
-      if (name === 'NotAllowedError' || name === 'SecurityError') {
-        setCameraError('Camera permission denied. Please allow camera access and try again.');
-      } else if (name === 'NotFoundError') {
-        setCameraError('No camera device found. Please use file upload instead.');
-      } else {
-        setCameraError('Failed to access camera. Please try again or use file upload.');
+  const stopCamera = () => {
+    const s = streamRef.current;
+    if (s) {
+      try {
+        s.getTracks().forEach((t) => t.stop());
+      } catch {
+        // ignore
       }
     }
+    streamRef.current = null;
   };
 
   const closeCamera = () => {
     stopCamera();
     setCameraOpen(false);
+    setCameraError('');
   };
 
-  const setSelectedImageFile = (selectedFile) => {
-    if (!selectedFile) return;
-    if (!selectedFile.type?.startsWith('image/')) {
-      setError('Please select an image file (JPEG, PNG, or WebP).');
-      setFile(null);
-      setPreview(null);
+  const openCamera = async () => {
+    setCameraError('');
+    if (!navigator?.mediaDevices?.getUserMedia) {
+      // Silent fallback
+      cameraInputRef.current?.click();
       return;
     }
-    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-      setError(`Image must be smaller than ${MAX_FILE_SIZE_MB} MB.`);
-      setFile(null);
-      setPreview(null);
-      return;
+    setCameraOpen(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = stream;
+        await video.play();
+      }
+    } catch {
+      // Permission denied / no camera available — silently fallback to file picker capture input.
+      setCameraOpen(false);
+      cameraInputRef.current?.click();
     }
-    setFile(selectedFile);
-    setPreview(URL.createObjectURL(selectedFile));
-    setResult(null);
-    setError('');
   };
 
-  const capturePhoto = async () => {
+  const captureFromCamera = async () => {
     const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
+    if (!video) return;
+    const w = video.videoWidth || 0;
+    const h = video.videoHeight || 0;
+    if (!w || !h) return;
 
-    const w = video.videoWidth || 1280;
-    const h = video.videoHeight || 720;
+    const canvas = document.createElement('canvas');
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     ctx.drawImage(video, 0, 0, w, h);
 
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
-    if (!blob) {
-      setCameraError('Could not capture photo. Please try again.');
-      return;
-    }
-    const captured = new File([blob], `leaf_capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
-    setSelectedImageFile(captured);
+    if (!blob) return;
+    const f = new File([blob], `camera_${Date.now()}.jpg`, { type: 'image/jpeg' });
     closeCamera();
+    onPickFile(f);
   };
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    setSelectedImageFile(selectedFile);
+  const onDrop = (e) => {
+    e.preventDefault();
+    const f = e.dataTransfer.files?.[0];
+    onPickFile(f);
   };
 
-  const handleDetect = async () => {
-    if (!file) {
-      setError('Please select an image first');
-      return;
-    }
-    if (!selectedCrop) {
-      setError('Please select the crop type first (Tomato, Potato, or Pepper Bell).');
-      return;
-    }
-
+  const onDetect = async () => {
+    if (!file) return;
     setLoading(true);
     setError('');
     setResult(null);
-
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('crop', selectedCrop);
-
-      const response = await diseaseAPI.detect(formData);
-      setResult(response.data);
-      setError(''); // Clear any previous errors
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await diseaseAPI.detect(fd);
+      setResult(res.data);
     } catch (err) {
-      setResult(null);
       const msg = err.response?.data?.error;
-      if (err.response?.status === 400) {
-        setError(msg || 'Invalid image file. Please upload a valid image (PNG, JPG, or JPEG).');
-      } else if (err.response?.status === 401) {
-        setError('Authentication required. Please log in again.');
-      } else if (err.response?.status === 404) {
-        setError(msg || 'Model not found. Please contact support.');
-      } else if (err.response?.status === 413) {
-        setError(msg || 'Image file is too large. Please upload an image smaller than 10MB.');
-      } else if (err.response?.status >= 500) {
-        setError(msg || 'Server error. Please try again later or contact support if the problem persists.');
-      } else if (err.message === 'Network Error' || !err.response) {
-        setError('Network error. Please check your internet connection and try again.');
-      } else {
-        setError(msg || 'Failed to detect disease. Please try again.');
-      }
+      setError(msg || 'Could not analyze the photo. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReset = () => {
+  const reset = () => {
+    closeCamera();
     setFile(null);
-    setPreview(null);
     setResult(null);
     setError('');
-    setCameraError('');
-    if (preview) {
-      URL.revokeObjectURL(preview);
+    setFeedbackChoice(null);
+    setFeedbackNotes('');
+    setFeedbackMessage('');
+    sessionStorage.removeItem('tomato_advisory_bootstrap');
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl('');
+  };
+
+  const pushChatBootstrap = () => {
+    if (!result || result.status === 'uncertain') return;
+    const disease = result.disease;
+    const severity = result.severity_stage || 'Unknown';
+    const conf = Number(result.confidence || 0).toFixed(1);
+    const cov = coverage === null ? 'N/A' : coverage.toFixed(1);
+
+    const ctx =
+      `A farmer's tomato leaf has been diagnosed with ${disease} at ${severity} severity. ` +
+      `Confidence: ${conf}%. Lesion coverage: ${cov}%. Provide specific, practical treatment advice for smallholder farmers in Uganda.`;
+
+    sessionStorage.setItem(
+      'tomato_advisory_bootstrap',
+      JSON.stringify({
+        message: ctx,
+        detection_context: ctx,
+        disease_name: disease || '',
+        from_detection: true,
+        autoSend: true,
+      }),
+    );
+  };
+
+  const submitFeedback = async () => {
+    if (feedbackChoice === null || !file || !result || result.status === 'uncertain') return;
+    setFeedbackLoading(true);
+    setFeedbackMessage('');
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      fd.append('predicted_disease', result.disease || '');
+      fd.append('severity_stage', result.severity_stage || '');
+      fd.append('confidence', String(result.confidence ?? 0));
+      fd.append('lesion_count', String(result.lesion_count ?? ''));
+      fd.append('leaf_coverage_pct', String(result.leaf_coverage_pct ?? ''));
+      fd.append('user_confirmed', feedbackChoice ? 'true' : 'false');
+      if (feedbackNotes) fd.append('farmer_notes', feedbackNotes);
+      if (user?.location) fd.append('location', user.location);
+
+      await fieldSamplesAPI.create(fd);
+      setFeedbackMessage('Thank you. Your feedback helps improve accuracy for Ugandan farmers.');
+    } catch {
+      setFeedbackMessage('Could not submit feedback. Please try again.');
+    } finally {
+      setFeedbackLoading(false);
     }
   };
 
   useEffect(() => {
     return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
       stopCamera();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [previewUrl]);
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Plant Disease Detection</h1>
-        <p className="text-gray-600 mt-1">Upload an image to detect plant diseases using AI</p>
-        <p className="text-sm text-amber-700 mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          Supported crops: <strong>Tomato</strong>, <strong>Potato</strong>, and <strong>Pepper Bell</strong> leaves only. Select the crop first; unsupported crops will be rejected with no diagnosis.
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900">Upload a tomato leaf photo</h1>
+        <p className="mt-2 text-slate-700">
+          JPG, PNG — take the photo in natural daylight for best results.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Upload Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Image</h2>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <p className="text-sm font-semibold text-slate-900">Upload a tomato leaf photo</p>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Crop Type (required)
-            </label>
-            <select
-              value={selectedCrop}
-              onChange={(e) => setSelectedCrop(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+          {!previewUrl ? (
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={onDrop}
+              className="mt-3 rounded-2xl border-2 border-dashed border-slate-200 bg-canvas px-5 py-8 text-center"
+              style={{
+                backgroundImage:
+                  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cg fill='none' stroke='%231B4332' stroke-opacity='0.055' stroke-width='1.2'%3E%3Cpath d='M24.5 9.2c-5.6.4-9.3 3.6-11.1 6.8-2 3.3-1.2 5.6 1.6 5.6 3.2 0 5.8-2.5 7-5.5.7-2 1.2-4.8 2.5-6.9Z'/%3E%3Cpath d='M11.4 20.4c1.7-2.5 5-5.3 9.2-7.2' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E\")",
+                backgroundRepeat: 'repeat',
+              }}
             >
-              <option value="">Select crop type</option>
-              <option value="tomato">Tomato</option>
-              <option value="potato">Potato</option>
-              <option value="pepper">Pepper Bell</option>
-            </select>
-          </div>
-          
-          {!preview ? (
-            <div className="space-y-3">
-              <label className="flex flex-col items-center justify-center w-full h-56 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="w-12 h-12 text-gray-400 mb-4" />
-                  <p className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    PNG, JPG, JPEG or WebP (max 10MB). Use a clear leaf photo (close-up, good light, leaf fills most of the frame).
-                  </p>
-                </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  capture="environment"
-                  onChange={handleFileChange}
-                />
-              </label>
+              <LeafOutlineIcon className="mx-auto text-primary-600/40" size={34} />
+              <p className="mt-3 text-sm text-slate-700">
+                Drag and drop here, or{' '}
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="font-semibold text-primary-700 hover:text-primary-800"
+                >
+                  choose a file
+                </button>
+                .
+              </p>
+              <p className="mt-1 text-xs text-slate-600">Supported formats: JPG, PNG</p>
 
-              <button
-                type="button"
-                onClick={openCamera}
-                className="w-full border border-gray-300 bg-white text-gray-900 py-3 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
-              >
-                Use Camera
-              </button>
+              <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                >
+                  <span aria-hidden="true">📁</span> Upload from Gallery
+                </button>
+                <button
+                  type="button"
+                  onClick={openCamera}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                >
+                  <span aria-hidden="true">📷</span> Take a Photo
+                </button>
+              </div>
 
-              {cameraError && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-sm">
-                  {cameraError}
-                </div>
-              )}
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png"
+                className="hidden"
+                onChange={(e) => onPickFile(e.target.files?.[0])}
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => onPickFile(e.target.files?.[0])}
+              />
             </div>
           ) : (
-            <div className="relative">
-              <img
-                src={preview}
-                alt="Preview"
-                className="w-full h-64 object-cover rounded-lg"
-              />
-              <button
-                onClick={handleReset}
-                className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition"
-              >
-                <span className="text-gray-600">×</span>
-              </button>
-            </div>
-          )}
-
-          {cameraOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-              <div className="w-full max-w-xl bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-                  <div>
-                    <p className="font-semibold text-gray-900">Camera</p>
-                    <p className="text-xs text-gray-600">Take a clear close-up of the leaf.</p>
-                  </div>
+            <div className="mt-3">
+              <div className="td-fade-in relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                <img src={previewUrl} alt="Leaf preview" className="w-full h-72 object-cover" />
+                {!loading && (
                   <button
                     type="button"
-                    onClick={closeCamera}
-                    className="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50"
+                    onClick={reset}
+                    className="td-preview-close"
+                    aria-label="Clear selected image"
                   >
-                    Close
+                    ×
                   </button>
-                </div>
-
-                <div className="p-4 space-y-3">
-                  <div className="bg-black rounded-lg overflow-hidden">
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      className="w-full h-80 object-contain"
-                      onLoadedMetadata={() => {
-                        if (videoRef.current) videoRef.current.play?.();
-                      }}
-                    />
-                  </div>
-                  <canvas ref={canvasRef} className="hidden" />
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={capturePhoto}
-                      className="bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
-                    >
-                      Capture Photo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={closeCamera}
-                      className="border border-gray-300 bg-white text-gray-900 py-3 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-
-                  {cameraError && (
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-sm">
-                      {cameraError}
-                    </div>
+                )}
+              </div>
+              <div className="mt-3 flex gap-3">
+                <button
+                  type="button"
+                  onClick={reset}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Try Again
+                </button>
+                <button
+                  type="button"
+                  onClick={onDetect}
+                  disabled={loading}
+                  className="flex-1 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-60"
+                >
+                  {loading ? (
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <Loader2 className="animate-spin" size={16} />
+                      Analyzing leaf...
+                    </span>
+                  ) : (
+                    'Analyze leaf'
                   )}
-                </div>
+                </button>
               </div>
             </div>
           )}
 
           {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 flex gap-3">
-              <AlertCircle className="flex-shrink-0 mt-0.5" size={22} />
-              <p className="text-sm leading-relaxed">{error}</p>
+            <div className="mt-4 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 text-sm text-slate-800">
+              {error}
             </div>
           )}
-
-          <button
-            onClick={handleDetect}
-            disabled={!file || loading}
-            className="mt-4 w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center space-x-2"
-          >
-            {loading ? (
-              <>
-                <Loader className="w-5 h-5 animate-spin" />
-                <span>Detecting...</span>
-              </>
-            ) : (
-              <>
-                <ScanLine size={20} />
-                <span>Detect Disease</span>
-              </>
-            )}
-          </button>
         </div>
 
-        {/* Results Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Detection Results</h2>
-          
-          {result ? (
-            <div className="space-y-4">
-              <div
-                className={`p-4 rounded-lg border-2 ${
-                  result.is_unknown
-                    ? 'bg-yellow-50 border-yellow-300'
-                    : result.predicted_class?.includes('Healthy')
-                    ? 'bg-green-50 border-green-300'
-                    : 'bg-red-50 border-red-300'
-                }`}
-              >
-                <div className="flex items-start space-x-3 mb-3">
-                  {result.is_unknown ? (
-                    <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={24} />
-                  ) : result.predicted_class?.includes('Healthy') ? (
-                    <CheckCircle className="text-green-600 flex-shrink-0 mt-0.5" size={24} />
-                  ) : (
-                    <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={24} />
-                  )}
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 text-lg mb-1">
-                      {formatClassName(result.predicted_class)}
-                    </h3>
-                    {result.is_unknown ? (
-                      <p className="text-sm text-yellow-800 font-medium">
-                        Unable to identify this image with sufficient confidence
-                      </p>
-                    ) : (
-                      <p className="text-sm text-gray-700">
-                        Confidence:{' '}
-                        <span className="font-semibold">{formatConfidence(result.confidence)}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {result.is_unknown && (
-                  <div className="mt-3 pt-3 border-t border-yellow-200">
-                    <p className="text-xs text-yellow-700 italic">
-                      The model's confidence level ({formatConfidence(result.confidence)}) is below the threshold for reliable detection. 
-                      This may indicate the image is not a plant leaf, shows an untrained disease, or has quality issues.
-                    </p>
-                  </div>
-                )}
-              </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <p className="text-sm font-semibold text-slate-900">Result</p>
 
-              {result.warning && (
-                <div className="p-4 bg-amber-50 border border-amber-300 rounded-lg text-amber-900">
-                  <p className="text-sm leading-relaxed">
-                    <span className="font-semibold">Caution:</span> {result.warning}
-                  </p>
-                </div>
-              )}
-
-              {result.treatment && (
-                <div className="space-y-4 mt-4">
-                  <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-                    Treatment & Prevention Guide
-                  </h3>
-                  
-                  {/* General Treatment */}
-                  <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0">
-                        <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-blue-900 mb-2">General Treatment</h4>
-                        <p className="text-sm text-blue-800 whitespace-pre-line leading-relaxed">
-                          {typeof result.treatment === 'string' ? result.treatment : (result.treatment.general || 'No treatment information available.')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Prevention */}
-                  {result.treatment.prevention && (
-                    <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-lg">
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0">
-                          <svg className="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-yellow-900 mb-2">Prevention Tips</h4>
-                          <p className="text-sm text-yellow-800 whitespace-pre-line leading-relaxed">
-                            {result.treatment.prevention}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Organic Solutions */}
-                  {result.treatment.organic && (
-                    <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0">
-                          <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-green-900 mb-2">Organic Solutions</h4>
-                          <p className="text-sm text-green-800 whitespace-pre-line leading-relaxed">
-                            {result.treatment.organic}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!result.is_unknown && result.top_3 && result.top_3.length > 1 && (
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Other Possible Diagnoses</h4>
-                  <div className="space-y-2">
-                    {result.top_3.slice(1).map((item, idx) => (
-                      <div key={idx} className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm font-medium text-gray-900">
-                          {formatClassName(item.class)}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {formatConfidence(item.confidence)} confidence
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+          {!result ? (
+            <div className="mt-6 text-sm text-slate-600">
+              Upload a photo to begin.
             </div>
-          ) : error ? (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+          ) : result.status === 'uncertain' ? (
+            <div className="mt-4 rounded-2xl border border-accent-200 bg-accent-50 p-5">
               <div className="flex items-start gap-3">
-                <AlertCircle className="flex-shrink-0 mt-0.5" size={24} />
+                <Camera className="text-accent-700" size={22} />
                 <div>
-                  <p className="font-semibold text-red-900 mb-1">No results</p>
-                  <p className="text-sm leading-relaxed">{error}</p>
+                  <p className="text-base font-semibold text-slate-900">Photo unclear for diagnosis</p>
+                  <p className="mt-1 text-sm text-slate-800">
+                    Retake the photo in natural daylight with the leaf filling most of the frame.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="mt-4 rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700"
+                  >
+                    Try Again
+                  </button>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-              <ScanLine size={48} className="mb-4" />
-              <p>Upload an image and click detect to see results</p>
+            <div className="mt-4 space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div>
+                  <p className={`text-2xl font-semibold ${diseaseTitleClass(result.status)}`}>
+                    {result.status === 'healthy' && (
+                      <span className="inline-flex items-center mr-2 text-primary-700">
+                        <HealthyCheckmark />
+                      </span>
+                    )}
+                    {result.disease}
+                  </p>
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                    {result.severity_stage && (
+                      <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold ${severityBadge(result.severity_stage)}`}>
+                        {severityIcon(result.severity_stage) && (
+                          <span className="mr-1 inline-flex items-center text-[16px] leading-none" aria-hidden="true">
+                            {severityIcon(result.severity_stage)}
+                          </span>
+                        )}
+                        {result.severity_stage}
+                      </span>
+                    )}
+                    <span className="text-sm text-slate-600">{Number(result.confidence).toFixed(1)}% confidence</span>
+                  </div>
+
+                  {result.status === 'detected' && (
+                    <div className="mt-4">
+                      <p className="text-sm text-slate-700">
+                        {result.lesion_count ?? '—'} lesions detected · {coverage === null ? '—' : `${coverage.toFixed(1)}%`} leaf area affected
+                      </p>
+                      <div className="mt-2 h-3 w-full rounded-full bg-gradient-to-r from-green-500 via-accent-500 to-red-600 overflow-hidden">
+                        <div
+                          className="h-3 bg-white/80"
+                          style={{ width: `${coverage === null ? 0 : 100 - coverage}%` }}
+                          aria-hidden="true"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  {result.status === 'detected' ? (
+                    <div>
+                      {showAffectedRegions ? (
+                        <>
+                          <p className="text-sm font-semibold text-slate-900">Affected regions highlighted</p>
+                          <img
+                            src={`data:image/jpeg;base64,${result.gradcam_image}`}
+                            alt="Grad-CAM overlay"
+                            className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 object-contain"
+                          />
+                          <p className="mt-2 text-xs text-slate-600">Brighter areas indicate detected lesions</p>
+                        </>
+                      ) : (
+                        <div className="rounded-2xl border border-slate-200 bg-canvas p-4 text-sm text-slate-700">
+                          No affected-region overlay available for this image.
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div />
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-canvas p-4 text-sm text-slate-800">
+                {result.message}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  pushChatBootstrap();
+                  navigate('/chat');
+                }}
+                className="inline-flex items-center gap-2 rounded-2xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-700"
+              >
+                Get Treatment Advice <MoveRight size={16} />
+              </button>
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                <p className="text-sm font-semibold text-slate-900">Help us improve</p>
+                <p className="mt-1 text-sm text-slate-700">Was this diagnosis correct?</p>
+
+                <div className="mt-3 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackChoice(true)}
+                    className={`flex-1 rounded-xl border px-4 py-2 text-sm font-semibold ${
+                      feedbackChoice === true
+                        ? 'border-primary-600 bg-primary-600 text-white'
+                        : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'
+                    }`}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackChoice(false)}
+                    className={`flex-1 rounded-xl border px-4 py-2 text-sm font-semibold ${
+                      feedbackChoice === false
+                        ? 'border-primary-600 bg-primary-600 text-white'
+                        : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'
+                    }`}
+                  >
+                    No
+                  </button>
+                </div>
+
+                {feedbackChoice !== null && (
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <label className="text-sm font-semibold text-slate-900">Add notes (optional)</label>
+                      <textarea
+                        value={feedbackNotes}
+                        onChange={(e) => setFeedbackNotes(e.target.value)}
+                        rows={3}
+                        className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+                        placeholder="For example: field location, weather, how the leaf looked in person..."
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={submitFeedback}
+                      disabled={feedbackLoading}
+                      className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
+                    >
+                      {feedbackLoading ? <Loader2 className="animate-spin" size={16} /> : <SendHorizontal size={16} />}
+                      Submit Feedback
+                    </button>
+                    {feedbackMessage && (
+                      <div className="rounded-2xl border border-slate-200 bg-canvas px-4 py-3 text-sm text-slate-800">
+                        {feedbackMessage}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      {cameraOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-slate-900">Take a Photo</p>
+              <button
+                type="button"
+                onClick={closeCamera}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              <video ref={videoRef} playsInline muted className="w-full h-72 object-cover" />
+            </div>
+
+            {cameraError && (
+              <div className="mt-3 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 text-sm text-slate-800">
+                {cameraError}
+              </div>
+            )}
+
+            <div className="mt-3 flex gap-3">
+              <button
+                type="button"
+                onClick={closeCamera}
+                className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={captureFromCamera}
+                className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              >
+                Capture
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default DiseaseDetection;
-
-
-
-
-
-
-
-
-
